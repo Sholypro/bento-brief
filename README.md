@@ -134,3 +134,12 @@ scripts/            serveur local et test de l'API
 ```
 
 Tester l'API sans navigateur : `npm run test:api` (avec un `.env` rempli).
+
+---
+
+## V1 en ligne : page Claude + brief automatique
+
+- **L'app** : `artifact/index.html`, publiée comme page Claude privée (« Bento brief »). Elle lit le document `brief/latest` dans la base de la page.
+- **Le tri** : une tâche planifiée Claude (`automation/prompt.md`) tourne en semaine, toutes les heures de 8h à 20h. Elle lit Slack et Gmail avec les connecteurs de ton compte Claude, trie, puis écrit le brief dans la base.
+- **Studio KLIMB** : pas encore branché.
+- Le dossier `api/` et `lib/` reste la version autonome (Vercel ou serveur Node) si tu veux un jour sortir de Claude.
