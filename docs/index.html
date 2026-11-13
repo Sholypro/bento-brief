@@ -108,6 +108,14 @@
   .tile-head { flex-wrap: wrap; }
   .head-actions { display: inline-flex; align-items: center; gap: 14px; margin-left: auto; }
   .tile-head a { font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; padding: 10px 0; }
+  .tile-head a.open-link { width: 40px; height: 40px; padding: 0; border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; background: rgba(20,32,26,0.08); flex-shrink: 0; }
+  .tile-head a.open-link:hover { background: rgba(20,32,26,0.16); }
+  .tile-head a.open-link .go { opacity: 1; }
+  .slack .tile-head a.open-link { background: rgba(255,255,255,0.12); }
+  .slack .tile-head a.open-link:hover { background: rgba(255,255,255,0.22); }
+  .tile-head h2 { min-width: 0; }
+  .mails { container-type: inline-size; }
+  @container (max-width: 400px) { .mails .h-long { display: none; } }
 
   /* L'essentiel */
   .brief { background: var(--accent); color: var(--ink); display: flex; flex-direction: column; gap: 16px; box-shadow: 0 16px 40px rgba(47,74,16,0.22); }
@@ -359,7 +367,7 @@
     .grid { grid-area: grid; height: 100%; min-height: 0; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: fit-content(48%) auto; grid-auto-rows: minmax(0, 1fr); }
     .grid > :not(.brief):not(.stats) { contain: size; }
     .topbar { justify-content: flex-end; }
-    .grid > * { grid-column: span var(--span-p, 1); order: var(--o-p, 0); }
+    .grid > * { grid-column: span var(--span-p, 1); grid-row: span var(--rows-p, 1); order: var(--o-p, 0); }
     .errors { grid-area: err; align-self: center; text-align: left; }
     .status { grid-area: status; padding: 0; justify-content: flex-end; flex-wrap: nowrap; }
     .status .src { white-space: nowrap; }
@@ -555,7 +563,7 @@
     const reconnect = (d.sources || {}).gmail === 'reconnect';
     return `
       <section class="tile glass mails ${W(L)}" data-key="mails" ${L} aria-labelledby="t-mails">
-        <div class="tile-head"><h2 id="t-mails">Mails importants ${list.length ? `<span class="badge">${list.length}</span>` : ''}</h2><span class="head-actions"><button class="more" type="button" hidden>Tout voir</button><a href="https://mail.google.com/" target="_blank" rel="noopener">Ouvrir</a></span></div>
+        <div class="tile-head"><h2 id="t-mails"><span>Mails<span class="h-long"> importants</span></span> ${list.length ? `<span class="badge">${list.length}</span>` : ''}</h2><span class="head-actions"><button class="more" type="button" hidden>Tout voir</button><a class="open-link" href="https://mail.google.com/" target="_blank" rel="noopener" aria-label="Ouvrir Gmail" title="Ouvrir Gmail">${GO}</a></span></div>
         ${rows ? `<div class="list fit">${rows}</div>` : (reconnect ? '<p class="empty">Gmail est à reconnecter dans les réglages de Claude (Connecteurs) pour que je puisse trier tes mails.</p>' : '<p class="empty">Aucun mail important. Belle journée.</p>')}
         ${reconnect ? '' : `<div class="foot">${(d.otherMails ?? 0) > 1 ? `${esc(d.otherMails)} autres mails peuvent attendre` : `${esc(d.otherMails ?? 0)} autre mail peut attendre`}</div>`}
       </section>`;
@@ -575,7 +583,7 @@
       </a>`).join('');
     return `
       <section class="tile dark slack ${W(L)}" data-key="slack" ${L} aria-labelledby="t-slack">
-        <div class="tile-head"><h2 id="t-slack">Slack ${waiting ? `<span class="badge" title="Attendent ta réponse">${waiting}</span>` : ''}</h2><span class="head-actions"><button class="more" type="button" hidden>Tout voir</button><a href="https://app.slack.com/client" target="_blank" rel="noopener">Ouvrir</a></span></div>
+        <div class="tile-head"><h2 id="t-slack">Slack ${waiting ? `<span class="badge" title="Attendent ta réponse">${waiting}</span>` : ''}</h2><span class="head-actions"><button class="more" type="button" hidden>Tout voir</button><a class="open-link" href="https://app.slack.com/client" target="_blank" rel="noopener" aria-label="Ouvrir Slack" title="Ouvrir Slack">${GO}</a></span></div>
         ${rows ? `<div class="list fit">${rows}</div>` : '<p class="empty">Rien qui t’attend sur Slack.</p>'}
       </section>`;
   }
@@ -592,7 +600,7 @@
       </div>`).join('');
     return `
       <section class="tile glass studio ${W(L)}" data-key="studio" ${L} aria-labelledby="t-studio">
-        <div class="tile-head"><h2 id="t-studio">Studio KLIMB</h2><span class="head-actions"><button class="more" type="button" hidden>Tout voir</button><a href="${esc(d.studioUrl || 'https://studio.goklimb.com/')}" target="_blank" rel="noopener">Ouvrir</a></span></div>
+        <div class="tile-head"><h2 id="t-studio">Studio KLIMB</h2><span class="head-actions"><button class="more" type="button" hidden>Tout voir</button><a class="open-link" href="${esc(d.studioUrl || 'https://studio.goklimb.com/')}" target="_blank" rel="noopener" aria-label="Ouvrir le Studio" title="Ouvrir le Studio">${GO}</a></span></div>
         ${rows ? `<div class="timeline list fit">${rows}</div>` : '<p class="empty">Source Studio pas encore branchée.</p>'}
       </section>`;
   }
@@ -629,7 +637,7 @@
     const active = ['mails', 'slack', 'studio'].filter((k) => !isOff[k]).sort((a, b) => (n[b] + prio[b]) - (n[a] + prio[a]));
     const [big, mid, small] = active;
     // span = paysage (4 colonnes, 2 lignes) · sp = portrait (2 colonnes) · ot/op/om = ordre paysage/portrait/iPhone
-    const L = (span, ot, om, sp, op) => `style="--span:${span};--o-t:${ot};--o-m:${om};--span-p:${sp};--o-p:${op}"`;
+    const L = (span, ot, om, sp, op, rp = 1) => `style="--span:${span};--o-t:${ot};--o-m:${om};--span-p:${sp};--o-p:${op};--rows-p:${rp}"`;
     const out = { mails: 'hidden', slack: 'hidden', studio: 'hidden' };
     out.stats = L(1, 1, 1, 2, 1);
     if (active.length === 0) {
@@ -643,8 +651,9 @@
       // Ligne 1 : essentiel (2) + compteurs (1) + la section la plus courte (1)
       // Ligne 2 : les deux autres, la plus remplie prend plus de place
       const wideBig = n[mid] === 0 || n[big] >= 2.5 * n[mid];
+      // Portrait (iPad) : la section la plus remplie occupe toute la colonne de gauche, les deux autres s'empilent à droite
       out.brief = L(2, 0, 0, 2, 0); out[small] = L(1, 2, 4, 1, 4);
-      out[big] = L(wideBig ? 3 : 2, 3, 2, 2, 2); out[mid] = L(wideBig ? 1 : 2, 4, 3, 1, 3);
+      out[big] = L(wideBig ? 3 : 2, 3, 2, 1, 2, 2); out[mid] = L(wideBig ? 1 : 2, 4, 3, 1, 3);
     }
     return out;
   }
@@ -678,7 +687,7 @@
         const box = fit.getBoundingClientRect();
         const items = [...fit.children];
         const hiddenCount = items.filter((el) => el.getBoundingClientRect().bottom > box.bottom + 2).length;
-        btn.textContent = hiddenCount && tile.dataset.key !== 'brief' ? `Tout voir (+${hiddenCount})` : 'Tout voir';
+        btn.textContent = hiddenCount && tile.dataset.key !== 'brief' && tile.clientWidth >= 440 ? `Tout voir (+${hiddenCount})` : 'Tout voir';
       }
     });
   }

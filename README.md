@@ -143,3 +143,4 @@ Tester l'API sans navigateur : `npm run test:api` (avec un `.env` rempli).
 - **Le tri** : une tâche planifiée Claude (`automation/prompt.md`) tourne en semaine, toutes les heures de 8h à 20h. Elle lit Slack et Gmail avec les connecteurs de ton compte Claude, trie, puis écrit le brief dans la base.
 - **Studio KLIMB** : pas encore branché.
 - Le dossier `api/` et `lib/` reste la version autonome (Vercel ou serveur Node) si tu veux un jour sortir de Claude.
+- **App iPhone et iPad** : `ios/`, une app SwiftUI qui affiche la page Claude en plein écran, installée depuis Xcode en mode développeur avec un Apple ID gratuit. Le guide pas à pas est dans `ios/README.md`.
