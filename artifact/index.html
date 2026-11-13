@@ -198,7 +198,64 @@
 
   .empty { font-size: 15px; line-height: 1.45; color: var(--ink-2); padding: 10px 0; margin: 0; }
   .status { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding-top: 6px; }
-  .status span { font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; }
+  .status .src { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; font: 600 13px var(--sans); padding: 0 10px 0 12px; border-radius: 999px; border: 0; cursor: pointer; transition: transform 0.15s, filter 0.15s; }
+  .status .src:hover { filter: brightness(1.08); }
+  .status .src:active { transform: scale(0.97); }
+  .status .src svg { opacity: 0.7; }
+
+  /* Panneaux de source (Gmail, Slack, Studio, IA) */
+  .panel { display: flex; flex-direction: column; gap: 18px; }
+  .panel .tile-head { margin: 0; }
+  .panel h2 { font-size: 24px; }
+  .state { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+  .state.ok { background: var(--forest); color: var(--accent); }
+  .state.warn { background: var(--hot-bg); color: var(--hot); }
+  .state.off { background: rgba(20,32,26,0.1); color: var(--ink-2); }
+  .panel-sub { margin: -10px 0 0; font-size: 15px; color: var(--ink-2); }
+  .panel h3 { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+  .panel section > p, .hint { margin: 0; font-size: 14px; line-height: 1.45; color: var(--ink-2); }
+  .hint { margin-top: 8px; }
+  .accs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .acc { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: rgba(255,255,255,0.55); }
+  .acc.paused { opacity: 0.6; }
+  @media (max-width: 520px) {
+    .acc { flex-wrap: wrap; row-gap: 10px; }
+    .acc .avatar { display: none; }
+    .acc .acc-body { flex: 1 1 100%; }
+    .acc .acct { margin-right: auto; }
+  }
+  .acc-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .acc-body b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .acc-body span { font-size: 13px; color: var(--ink-2); }
+  .icon-btn { width: 36px; height: 36px; border-radius: 18px; border: 0; background: rgba(20,32,26,0.08); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .icon-btn:hover { background: rgba(20,32,26,0.16); }
+  .switch { position: relative; width: 44px; height: 26px; flex-shrink: 0; cursor: pointer; }
+  .switch input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .switch i { position: absolute; inset: 0; border-radius: 13px; background: rgba(20,32,26,0.2); transition: background 0.15s; }
+  .switch i::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 10px; background: #fff; transition: transform 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .switch input:checked + i { background: var(--forest); }
+  .switch input:checked + i::after { transform: translateX(18px); }
+  .switch input:focus-visible + i { outline: 3px solid var(--forest); outline-offset: 2px; }
+  .add { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 10px; }
+  .add input { height: 46px; min-width: 0; border-radius: 16px; border: 1px solid rgba(20,32,26,0.18); background: rgba(255,255,255,0.85); padding: 0 14px; font: 16px var(--sans); color: var(--ink); }
+  .add input:focus { outline: 3px solid rgba(30,58,43,0.35); outline-offset: 0; border-color: var(--forest); }
+  @media (min-width: 640px) { .add { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto; } .add.one { grid-template-columns: minmax(0, 1fr) auto; } }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px; border-radius: 23px; border: 0; cursor: pointer; font: 700 15px var(--sans); background: var(--forest); color: var(--accent); text-decoration: none; }
+  .btn.ghost { background: rgba(20,32,26,0.08); color: var(--ink); }
+  .btn:disabled { opacity: 0.5; cursor: default; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 4px 4px 12px; border-radius: 999px; background: rgba(255,255,255,0.7); font-size: 14px; font-weight: 600; }
+  .chip .icon-btn { width: 28px; height: 28px; }
+  .facts { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .facts div { padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,0.55); }
+  .facts dt { font-size: 13px; color: var(--ink-2); font-weight: 600; }
+  .facts dd { margin: 2px 0 0; font-size: 15px; font-weight: 600; }
+  @media (min-width: 640px) { .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .rules { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 15px; line-height: 1.45; }
+  .panel-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+  .panel-note { font-size: 14px; font-weight: 600; color: var(--hot); min-height: 0; }
+  .panel-note:empty { display: none; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .errors { font-size: 14px; font-weight: 500; color: var(--hot); text-align: center; }
 
   /* Écran code d'accès */
@@ -264,7 +321,7 @@
     .topbar { justify-content: flex-end; }
     .errors { grid-area: err; align-self: center; text-align: left; }
     .status { grid-area: status; padding: 0; justify-content: flex-end; flex-wrap: nowrap; }
-    .status span { white-space: nowrap; }
+    .status .src { white-space: nowrap; }
     .errors { font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .tile { min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 20px 22px; }
     .fit { flex: 1 1 auto; min-height: 0; overflow: hidden; }
@@ -275,6 +332,7 @@
     .tile.clipped .fit { --ft: 0px; --fb: 40px; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft), #000 calc(100% - var(--fb)), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft), #000 calc(100% - var(--fb)), transparent 100%); }
     .tile.clipped .fit.scrolled { --ft: 28px; }
     .tile.clipped .fit.at-end { --fb: 0px; }
+    #sheetBody .panel { overflow: visible; padding: 26px 28px; }
     .brief { gap: 12px; }
     .brief .fit { display: flex; flex-direction: column; gap: 12px; }
     .top { padding: 16px; gap: 10px; flex-shrink: 0; }
@@ -304,7 +362,7 @@
     .grid > * { grid-column: span var(--span-p, 1); order: var(--o-p, 0); }
     .errors { grid-area: err; align-self: center; text-align: left; }
     .status { grid-area: status; padding: 0; justify-content: flex-end; flex-wrap: nowrap; }
-    .status span { white-space: nowrap; }
+    .status .src { white-space: nowrap; }
     .errors { font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .tile { min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 20px 22px; }
     .fit { flex: 1 1 auto; min-height: 0; overflow: hidden; }
@@ -315,6 +373,7 @@
     .tile.clipped .fit { --ft: 0px; --fb: 40px; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft), #000 calc(100% - var(--fb)), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft), #000 calc(100% - var(--fb)), transparent 100%); }
     .tile.clipped .fit.scrolled { --ft: 28px; }
     .tile.clipped .fit.at-end { --fb: 0px; }
+    #sheetBody .panel { overflow: visible; padding: 26px 28px; }
     .brief .fit { display: flex; flex-direction: column; gap: 12px; }
     .top { flex-shrink: 0; }
     .top p { font-size: 26px; }
@@ -423,6 +482,7 @@
   const AVATARS = ['#FFD9CC', '#E4F7A8', '#D7E9F2', '#F6DDF0', '#FFE9B8'];
   const avatarColor = (name) => AVATARS[[...String(name)].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATARS.length];
   const SOURCE = { gmail: 'Gmail', slack: 'Slack', studio: 'Studio' };
+  const acctLabel = (a) => ({ klimb: 'KLIMB', perso: 'Perso' }[a] || String(a));
   const plural = (n, s) => `${n} ${s}${n > 1 ? 's' : ''}`;
 
   function setHeader(data) {
@@ -487,7 +547,7 @@
       <a class="row" ${linkAttrs(m.link, 'gmail')} title="Ouvrir le mail dans Gmail">
         <span class="avatar" aria-hidden="true" style="background:${avatarColor(m.from)}">${esc(initials(m.from))}</span>
         <span class="row-body">
-          <span class="row-top"><b>${esc(m.from)}</b><span class="time">${m.account ? `<span class="acct ${esc(m.account)}">${m.account === 'klimb' ? 'KLIMB' : 'Perso'}</span>` : ''}${esc(fmtTime(m.time))}${GO}</span></span>
+          <span class="row-top"><b>${esc(m.from)}</b><span class="time">${m.account ? `<span class="acct ${m.account === 'klimb' ? 'klimb' : ''}">${esc(acctLabel(m.account))}</span>` : ''}${esc(fmtTime(m.time))}${GO}</span></span>
           <span class="subject">${esc(m.subject)}</span>
           <span class="tags"><span class="tag ${esc(m.tag)}">${esc({ urgent: 'Urgent', client: 'Client', valider: 'À valider', info: 'Info' }[m.tag] || 'Info')}</span><span>${esc(m.why || '')}</span></span>
         </span>
@@ -541,9 +601,11 @@
     const labels = { ok: 'OK', off: 'pas branché', error: 'erreur', demo: 'exemple', reconnect: 'à reconnecter' };
     const colors = { ok: 'background:rgba(30,58,43,0.85);color:#D7F75B', off: 'background:rgba(252,250,238,0.7);color:#2E3B33', error: 'background:#FFD9CC;color:#8A2E12', demo: 'background:rgba(252,250,238,0.7);color:#2E3B33', reconnect: 'background:#FFD9CC;color:#8A2E12' };
     const s = d.sources || {};
+    const CHEV = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>';
     $('status').innerHTML = ['gmail', 'slack', 'studio', 'ai'].map((k) => {
       const v = s[k] || 'off';
-      return `<span style="${colors[v] || colors.off}">${esc({ gmail: 'Gmail', slack: 'Slack', studio: 'Studio', ai: 'IA' }[k])} : ${esc(labels[v] || v)}</span>`;
+      const name = { gmail: 'Gmail', slack: 'Slack', studio: 'Studio', ai: 'IA' }[k];
+      return `<button type="button" class="src" data-src="${k}" style="${colors[v] || colors.off}" aria-haspopup="dialog" aria-label="${esc(name)} : ${esc(labels[v] || v)}. Gérer ${esc(name)}">${esc(name)} : ${esc(labels[v] || v)}${CHEV}</button>`;
     }).join('');
     $('errors').textContent = (d.errors || []).join(' · ');
   }
@@ -588,6 +650,8 @@
   }
 
   function render(d) {
+    lastBrief = d;
+    if (openSrc) renderPanel();
     setHeader(d);
     const lay = layout(d);
     $('grid').innerHTML = renderBrief(d, lay.brief) + renderStats(d, lay.stats) + (lay.mails === 'hidden' ? '' : renderMails(d, lay.mails)) + (lay.slack === 'hidden' ? '' : renderSlack(d, lay.slack)) + (lay.studio === 'hidden' ? '' : renderStudio(d, lay.studio));
@@ -622,25 +686,238 @@
   window.addEventListener('resize', () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitTiles, 120); });
 
   let lastFocus = null;
+  function showSheet(node) {
+    $('sheetBody').replaceChildren(node);
+    if ($('sheet').hidden) {
+      lastFocus = document.activeElement;
+      $('sheet').hidden = false;
+      document.body.classList.add('sheet-open');
+      $('sheetClose').focus();
+    }
+  }
   function openSheet(tile) {
+    openSrc = null;
     const clone = tile.cloneNode(true);
     clone.removeAttribute('style');
     clone.classList.remove('clipped');
     clone.classList.add('in-sheet', 'wide');
     clone.querySelectorAll('.more').forEach((b) => b.remove());
     clone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
-    $('sheetBody').replaceChildren(clone);
-    lastFocus = document.activeElement;
-    $('sheet').hidden = false;
-    document.body.classList.add('sheet-open');
-    $('sheetClose').focus();
+    showSheet(clone);
   }
   function closeSheet() {
+    openSrc = null;
     $('sheet').hidden = true;
     document.body.classList.remove('sheet-open');
     $('sheetBody').replaceChildren();
     if (lastFocus) lastFocus.focus();
   }
+
+  // ============ Panneaux de source : Gmail, Slack, Studio, IA ============
+  // Les réglages vivent dans la base de la page (document config/sources) ; la tâche planifiée les relit à chaque brief
+  const CONNECTORS_URL = 'https://claude.ai/settings/connectors';
+  const SCHEDULE = 'En semaine, toutes les heures de 8h12 à 20h12';
+  const X = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  let lastBrief = null;
+  let openSrc = null;
+  let cfg = null;
+  let cfgReady = false;
+  let dbRef = null;
+  let saving = false;
+  let panelMsg = '';
+
+  const STATE = { ok: ['ok', 'Connecté'], reconnect: ['warn', 'À reconnecter'], error: ['warn', 'Erreur'], off: ['off', 'Pas branché'], demo: ['off', 'Exemple'] };
+  const stateChip = (v) => { const [cls, txt] = STATE[v] || STATE.off; return `<span class="state ${cls}">${txt}</span>`; };
+  const lastRun = (d) => (d && d.generatedAt && !d.demo ? `Dernière lecture ${/^\d/.test(fmtTime(d.generatedAt)) ? 'à ' : ''}${fmtTime(d.generatedAt)}` : 'Pas encore de lecture');
+  const canWrite = () => !!dbRef && cfgReady;
+  const lockNote = () => (dbRef ? '' : '<p class="hint">Aperçu : connecte-toi à claude.ai et ouvre ta page Bento brief pour modifier ces réglages.</p>');
+
+  function panelGmail(d) {
+    const st = (d.sources || {}).gmail || 'off';
+    const c = d.counts || {};
+    const boxes = (cfg && Array.isArray(cfg.mailboxes)) ? cfg.mailboxes : [];
+    const vip = (cfg && Array.isArray(cfg.vipSenders)) ? cfg.vipSenders : [];
+    const main = (boxes.find((b) => b.mode === 'connected') || {}).address || 'ta boîte connectée';
+    const dis = canWrite() ? '' : 'disabled';
+    const rows = boxes.map((b, i) => {
+      const on = b.active !== false;
+      const slug = String(b.label || '').toLowerCase();
+      return `
+      <li class="acc ${on ? '' : 'paused'}">
+        <span class="avatar" aria-hidden="true" style="background:${avatarColor(b.address)}">${esc(initials(b.label || b.address))}</span>
+        <span class="acc-body"><b>${esc(b.address)}</b><span>${b.mode === 'connected' ? 'Compte connecté à Claude' : `Transférée vers ${esc(main)}`}${on ? '' : ' · en pause'}</span></span>
+        ${b.label ? `<span class="acct ${slug === 'klimb' ? 'klimb' : ''}">${esc(b.label)}</span>` : ''}
+        ${b.mode === 'connected' ? '' : `
+          <label class="switch" title="${on ? 'Mettre en pause' : 'Reprendre'}"><input type="checkbox" data-act="toggle" data-i="${i}" ${on ? 'checked' : ''} ${dis}><i></i><span class="sr">Suivre ${esc(b.address)}</span></label>
+          <button type="button" class="icon-btn" data-act="remove" data-i="${i}" aria-label="Retirer ${esc(b.address)}" ${dis}>${X}</button>`}
+      </li>`;
+    }).join('');
+    return `
+      <div class="tile-head"><h2 id="t-panel">Gmail ${stateChip(st)}</h2></div>
+      <p class="panel-sub">${esc(lastRun(d))}${st === 'ok' && !d.demo ? ` · ${plural(c.mailsTotal ?? 0, 'non lu')}, ${plural(c.mailsImportant ?? 0, 'important')}` : ''}</p>
+      ${st === 'reconnect' ? '<p class="panel-note">Gmail ne répond plus : reconnecte-le dans les connecteurs Claude.</p>' : ''}
+      <section aria-labelledby="h-boxes">
+        <h3 id="h-boxes">Boîtes suivies</h3>
+        ${rows ? `<ul class="accs">${rows}</ul>` : `<p>${cfgReady || !dbRef ? 'Aucune boîte enregistrée.' : 'Chargement…'}</p>`}
+        <form class="add" data-form="mailbox">
+          <input type="email" name="address" required placeholder="nom@domaine.com" autocomplete="off" aria-label="Adresse de la boîte" ${dis}>
+          <input type="text" name="label" required maxlength="20" placeholder="Étiquette (Freelance…)" autocomplete="off" aria-label="Étiquette" ${dis}>
+          <button type="submit" class="btn" ${dis}>Ajouter</button>
+        </form>
+        <p class="hint">Pour que je la lise, active le transfert de cette boîte vers <b>${esc(main)}</b> (réglages de la boîte, rubrique Transfert). Elle compte dès le prochain brief.</p>
+      </section>
+      <section aria-labelledby="h-vip">
+        <h3 id="h-vip">Toujours importants</h3>
+        <p>Un mail non lu de ces expéditeurs remonte toujours dans le brief. Une adresse ou un domaine entier (@client.fr).</p>
+        ${vip.length ? `<div class="chips" style="margin-top:10px">${vip.map((v, i) => `<span class="chip">${esc(v)}<button type="button" class="icon-btn" data-act="vip-remove" data-i="${i}" aria-label="Retirer ${esc(v)}" ${dis}>${X}</button></span>`).join('')}</div>` : ''}
+        <form class="add one" data-form="vip">
+          <input type="text" name="vip" required placeholder="marc@nova.fr ou @nova.fr" autocomplete="off" aria-label="Expéditeur ou domaine" ${dis}>
+          <button type="submit" class="btn" ${dis}>Ajouter</button>
+        </form>
+      </section>
+      ${lockNote()}
+      <p class="panel-note" role="status">${esc(panelMsg)}</p>
+      <div class="panel-actions">
+        <a class="btn" href="${CONNECTORS_URL}" target="_blank" rel="noopener">Gérer les connecteurs</a>
+        <a class="btn ghost" href="https://mail.google.com/" target="_blank" rel="noopener">Ouvrir Gmail</a>
+      </div>`;
+  }
+
+  function panelSlack(d) {
+    const st = (d.sources || {}).slack || 'off';
+    const c = d.counts || {};
+    const host = ((d.slack || []).map((s) => (safeUrl(s.link) || '').match(/^https:\/\/([^/]+)\.slack\.com/)).find(Boolean) || [])[1];
+    const waiting = (d.slack || []).filter((s) => s.awaitingReply).length;
+    return `
+      <div class="tile-head"><h2 id="t-panel">Slack ${stateChip(st)}</h2></div>
+      <p class="panel-sub">${esc(lastRun(d))}</p>
+      <dl class="facts">
+        <div><dt>Espace</dt><dd>${esc(host || 'Ton espace Slack')}</dd></div>
+        <div><dt>Ce que je lis</dt><dd>DM, groupes et mentions (36 h)</dd></div>
+        <div><dt>Conversations privées</dt><dd>${esc(c.slackDms ?? 0)}</dd></div>
+        <div><dt>Mentions dans les canaux</dt><dd>${esc(c.slackMentions ?? 0)}</dd></div>
+        <div><dt>Attendent ta réponse</dt><dd>${esc(waiting)}</dd></div>
+        <div><dt>Ce que je ne fais pas</dt><dd>Répondre, réagir, marquer lu</dd></div>
+      </dl>
+      <p class="hint">Pour suivre un autre espace Slack, connecte-le dans les connecteurs Claude : il sera lu au prochain brief.</p>
+      <div class="panel-actions">
+        <a class="btn" href="${CONNECTORS_URL}" target="_blank" rel="noopener">Gérer les connecteurs</a>
+        <a class="btn ghost" href="https://app.slack.com/client" target="_blank" rel="noopener">Ouvrir Slack</a>
+      </div>`;
+  }
+
+  function panelStudio(d) {
+    const st = (d.sources || {}).studio || 'off';
+    return `
+      <div class="tile-head"><h2 id="t-panel">Studio KLIMB ${stateChip(st)}</h2></div>
+      <p class="panel-sub">${st === 'off' ? 'Pas encore branché au brief' : esc(lastRun(d))}</p>
+      <section><p>Le Studio n'a pas encore de connecteur accessible depuis la tâche planifiée. Dès qu'il en a un, ce bloc affichera tes projets et les deadlines des 7 prochains jours.</p></section>
+      <div class="panel-actions">
+        <a class="btn" href="${esc(d.studioUrl || 'https://studio.goklimb.com/')}" target="_blank" rel="noopener">Ouvrir le Studio</a>
+      </div>`;
+  }
+
+  function panelAI(d) {
+    const st = (d.sources || {}).ai || 'off';
+    return `
+      <div class="tile-head"><h2 id="t-panel">IA ${stateChip(st)}</h2></div>
+      <p class="panel-sub">${esc(lastRun(d))}</p>
+      <dl class="facts">
+        <div><dt>Qui trie</dt><dd>Claude, via ta tâche planifiée « Bento brief »</dd></div>
+        <div><dt>Quand</dt><dd>${esc(SCHEDULE)}</dd></div>
+        <div><dt>Accès</dt><dd>Lecture seule, rien n'est envoyé ni marqué lu</dd></div>
+        <div><dt>Sources lues</dt><dd>${['gmail', 'slack', 'studio'].filter((k) => ((d.sources || {})[k]) === 'ok').map((k) => SOURCE[k]).join(', ') || 'Aucune'}</dd></div>
+      </dl>
+      <section>
+        <h3>Un mail est important si</h3>
+        <ul class="rules">
+          <li>un humain (client, collègue, partenaire) attend une action de toi</li>
+          <li>il y a une échéance proche, une validation, un devis, une facture ou un BAT</li>
+          <li>il vient d'un expéditeur de ta liste « Toujours importants »</li>
+        </ul>
+        <p class="hint">Newsletters, notifications automatiques et pubs ne remontent jamais.</p>
+      </section>
+      <div class="panel-actions">
+        <button type="button" class="btn ghost" data-act="goto" data-src="gmail">Régler les boîtes mail</button>
+      </div>`;
+  }
+
+  function renderPanel() {
+    if (!openSrc) return;
+    const d = lastBrief || {};
+    const html = { gmail: panelGmail, slack: panelSlack, studio: panelStudio, ai: panelAI }[openSrc](d);
+    const body = $('sheetBody');
+    const prev = body.querySelector('.panel');
+    // Garde ce qui est en cours de saisie quand la base se met à jour
+    const drafts = prev ? [...prev.querySelectorAll('form input')].map((i) => i.value) : null;
+    const sec = document.createElement('section');
+    sec.className = 'tile glass panel';
+    sec.setAttribute('aria-labelledby', 't-panel');
+    sec.innerHTML = html;
+    if (drafts) [...sec.querySelectorAll('form input')].forEach((i, n) => { if (drafts[n]) i.value = drafts[n]; });
+    showSheet(sec);
+  }
+  function openSource(k) { openSrc = k; panelMsg = ''; renderPanel(); }
+
+  async function saveCfg(next) {
+    if (!canWrite() || saving) return false;
+    saving = true;
+    panelMsg = '';
+    try {
+      await dbRef.doc('config/sources').set({ ...next, updatedAt: new Date().toISOString() });
+      return true;
+    } catch (e) {
+      panelMsg = 'Impossible d’enregistrer (' + (e.code || 'erreur') + ').';
+      renderPanel();
+      return false;
+    } finally { saving = false; }
+  }
+  const baseCfg = () => ({ mailboxes: [...((cfg && cfg.mailboxes) || [])], vipSenders: [...((cfg && cfg.vipSenders) || [])] });
+
+  $('status').addEventListener('click', (e) => { const b = e.target.closest('.src'); if (b) openSource(b.dataset.src); });
+  $('sheetBody').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    const i = Number(b.dataset.i);
+    const next = baseCfg();
+    if (b.dataset.act === 'goto') return openSource(b.dataset.src);
+    if (b.dataset.act === 'remove') next.mailboxes.splice(i, 1);
+    else if (b.dataset.act === 'vip-remove') next.vipSenders.splice(i, 1);
+    else return;
+    await saveCfg(next);
+  });
+  $('sheetBody').addEventListener('change', async (e) => {
+    const t = e.target;
+    if (t.dataset.act !== 'toggle') return;
+    const next = baseCfg();
+    const i = Number(t.dataset.i);
+    next.mailboxes[i] = { ...next.mailboxes[i], active: t.checked };
+    if (!(await saveCfg(next))) t.checked = !t.checked;
+  });
+  $('sheetBody').addEventListener('submit', async (e) => {
+    const f = e.target.closest('form[data-form]');
+    if (!f) return;
+    e.preventDefault();
+    const next = baseCfg();
+    if (f.dataset.form === 'mailbox') {
+      const address = f.elements.address.value.trim().toLowerCase();
+      const label = f.elements.label.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) { panelMsg = 'Adresse mail invalide.'; return renderPanel(); }
+      if (next.mailboxes.some((b) => b.address === address)) { panelMsg = 'Cette boîte est déjà suivie.'; return renderPanel(); }
+      next.mailboxes.push({ address, label, mode: 'forwarded', active: true });
+    } else {
+      let v = f.elements.vip.value.trim().toLowerCase();
+      if (/^[a-z0-9.-]+\.[a-z]{2,}$/.test(v)) v = '@' + v;
+      if (!/^([^\s@]+)?@[^\s@]+\.[^\s@]+$/.test(v)) { panelMsg = 'Indique une adresse ou un domaine (@client.fr).'; return renderPanel(); }
+      if (next.vipSenders.includes(v)) { panelMsg = 'Déjà dans la liste.'; return renderPanel(); }
+      next.vipSenders.push(v);
+    }
+    if (await saveCfg(next)) {
+      f.reset();
+      const live = $('sheetBody').querySelector(`form[data-form="${f.dataset.form}"]`);
+      if (live) live.reset();
+    }
+  });
   $('grid').addEventListener('click', (e) => {
     const btn = e.target.closest('.more');
     if (btn) openSheet(btn.closest('.tile'));
@@ -704,6 +981,13 @@
       note('Connecte-toi à claude.ai pour voir ton brief.');
       return;
     }
+    dbRef = db;
+    db.doc('config/sources').onSnapshot((snap) => {
+      if (snap.metadata.fromCache && !snap.exists) return;
+      cfg = snap.exists ? snap.data() : null;
+      cfgReady = true;
+      if (openSrc) renderPanel();
+    }, () => { cfgReady = false; if (openSrc) renderPanel(); });
     if (stop) stop();
     stop = db.doc('brief/latest').onSnapshot((snap) => {
       if (!snap.metadata.fromCache) { gotLive = true; clearTimeout(timer); document.body.classList.remove('loading'); }
