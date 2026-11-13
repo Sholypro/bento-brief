@@ -1,0 +1,17 @@
+{
+  "name": "bento-brief",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bento brief : Slack, Gmail et Studio KLIMB résumés en quelques secondes, en web app iPhone + iPad",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node --watch-path=./lib --watch-path=./api --watch-path=./scripts scripts/dev-server.mjs",
+    "test:api": "node scripts/test-api.mjs"
+  },
+  "dependencies": {
+    "imapflow": "^1.0.164"
+  }
+}
