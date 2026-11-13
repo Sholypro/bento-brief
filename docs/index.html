@@ -105,6 +105,8 @@
   .tile-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 6px; }
   .tile-head h2 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
   .badge { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 13px; font-size: 14px; font-weight: 700; background: var(--forest); color: var(--accent); font-variant-numeric: tabular-nums; }
+  .tile-head { flex-wrap: wrap; }
+  .head-actions { display: inline-flex; align-items: center; gap: 14px; margin-left: auto; }
   .tile-head a { font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; padding: 10px 0; }
 
   /* L'essentiel */
@@ -148,7 +150,7 @@
   .tag.valider { background: rgba(20,32,26,0.1); color: var(--ink); }
   .tag.info { background: #D7E9F2; color: #1D3A4A; }
   /* Chaque message est une carte cliquable */
-  .list { row-gap: 8px; column-gap: 10px; margin-top: 6px; }
+  .list { row-gap: 8px; column-gap: 10px; margin-top: 6px; align-content: start; }
   a.row { border-top: 0; padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.45); transition: background 0.15s, transform 0.15s; }
   a.row:hover { background: rgba(255,255,255,0.8); }
   a.row:active { transform: scale(0.99); }
@@ -173,7 +175,7 @@
   .udot { display: inline-block; width: 10px; height: 10px; border-radius: 5px; background: var(--accent); margin-right: 8px; }
   .await { align-self: flex-start; font-size: 13px; font-weight: 700; padding: 5px 12px; border-radius: 999px; background: var(--accent); color: var(--forest); }
   .slack .meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  .slack .more { font-size: 13px; color: #C9D6C4; }
+  .slack .msgs { font-size: 13px; color: #C9D6C4; }
 
   /* Studio timeline */
   .studio { display: flex; flex-direction: column; gap: 8px; }
@@ -227,6 +229,94 @@
     .stat .s { grid-area: s; align-self: start; }
     .stat .v { grid-area: v; font-size: 56px; }
   }
+  /* Bouton « Tout voir » et panneau */
+  .more { align-self: flex-start; margin-top: 10px; min-height: 40px; padding: 0 16px; border-radius: 20px; border: 0; cursor: pointer; font-size: 15px; font-weight: 700; background: var(--forest); color: var(--accent); }
+  .slack .more { background: var(--accent); color: var(--forest); }
+  .brief .more { background: rgba(30,58,43,0.12); color: var(--forest); }
+  .head-actions .more { margin: 0; min-height: 36px; padding: 0 14px; font-size: 14px; }
+  .sheet-backdrop { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom)); background: rgba(20,32,26,0.35); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .sheet-backdrop[hidden] { display: none; }
+  .sheet-wrap { position: relative; width: min(820px, 100%); max-height: 100%; display: flex; }
+  #sheetBody { width: 100%; max-height: calc(100dvh - 40px); overflow: auto; border-radius: 30px; -webkit-overflow-scrolling: touch; }
+  #sheetBody .tile { min-height: 0; height: auto; }
+  #sheetBody .fit { overflow: visible; max-height: none; -webkit-mask-image: none; mask-image: none; }
+  #sheetBody .glass { --glass: rgba(252, 250, 238, 0.95); }
+  #sheetBody .list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+  #sheetBody .timeline::before { display: none; }
+  #sheetBody .timeline.list { display: grid; row-gap: 20px; }
+  .sheet-close { position: absolute; top: 14px; right: 14px; z-index: 2; }
+  #sheetBody .tile-head { padding-right: 56px; }
+  body.sheet-open { overflow: hidden; }
+
+  /* ============ Écran unique : iPad paysage, ordinateur ============ */
+  @media (min-width: 900px) and (orientation: landscape) and (min-height: 620px) {
+    html, body { height: 100%; overflow: hidden; }
+    .app { height: 100dvh; max-width: 1600px; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "hello top" "grid grid" "err status"; gap: 14px 16px; padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+    .topbar { grid-area: top; align-self: start; }
+    header.hello { grid-area: hello; padding: 0 4px; }
+    header.hello h1 { font-size: clamp(36px, 4.6vh, 52px); }
+    header.hello p { margin-top: 6px; font-size: 16px; max-width: 60ch; }
+    .banner { display: none; }
+    .grid { grid-area: grid; height: 100%; min-height: 0; grid-template-rows: fit-content(60%) minmax(0, 1fr); grid-auto-rows: minmax(0, 1fr); }
+    .grid > :not(.brief) { contain: size; }
+    .topbar { justify-content: flex-end; }
+    .errors { grid-area: err; align-self: center; text-align: left; }
+    .status { grid-area: status; padding: 0; justify-content: flex-end; flex-wrap: nowrap; }
+    .status span { white-space: nowrap; }
+    .errors { font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .tile { min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 20px 22px; }
+    .fit { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+    .tile.clipped .fit { -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent); mask-image: linear-gradient(to bottom, #000 82%, transparent); }
+    .brief { gap: 12px; }
+    .brief .fit { display: flex; flex-direction: column; gap: 12px; }
+    .top { padding: 16px; gap: 10px; flex-shrink: 0; }
+    .top p { font-size: clamp(20px, 2.7vh, 30px); }
+    .cta { min-height: 42px; }
+    .rest { gap: 10px; }
+    .rest-item p { font-size: 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .rest-item .n { font-size: 24px; }
+    .brief-foot { display: none; }
+    .stats { min-height: 0; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .stat { min-height: 0; padding: 12px 18px; }
+    .stat .v { font-size: clamp(40px, 5.5vh, 60px); }
+  }
+
+  /* ============ Écran unique : iPad portrait ============ */
+  @media (min-width: 700px) and (orientation: portrait) and (min-height: 900px) {
+    html, body { height: 100%; overflow: hidden; }
+    .app { height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "hello top" "grid grid" "err status"; gap: 14px 16px; padding: max(20px, env(safe-area-inset-top)) 24px max(14px, env(safe-area-inset-bottom)); }
+    .topbar { grid-area: top; align-self: start; }
+    header.hello { grid-area: hello; padding: 0 4px; }
+    header.hello h1 { font-size: 44px; }
+    header.hello p { margin-top: 6px; font-size: 16px; }
+    .banner { display: none; }
+    .grid { grid-area: grid; height: 100%; min-height: 0; gap: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: fit-content(48%) auto; grid-auto-rows: minmax(0, 1fr); }
+    .grid > :not(.brief):not(.stats) { contain: size; }
+    .topbar { justify-content: flex-end; }
+    .grid > * { grid-column: span var(--span-p, 1); order: var(--o-p, 0); }
+    .errors { grid-area: err; align-self: center; text-align: left; }
+    .status { grid-area: status; padding: 0; justify-content: flex-end; flex-wrap: nowrap; }
+    .status span { white-space: nowrap; }
+    .errors { font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .tile { min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 20px 22px; }
+    .fit { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+    .tile.clipped .fit { -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent); mask-image: linear-gradient(to bottom, #000 82%, transparent); }
+    .brief .fit { display: flex; flex-direction: column; gap: 12px; }
+    .top { flex-shrink: 0; }
+    .top p { font-size: 26px; }
+    .rest-item p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .rest { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .brief-foot { display: none; }
+    .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stat { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "k v" "s v"; align-items: center; column-gap: 10px; padding: 14px 16px; }
+    .stat .k { grid-area: k; align-self: end; }
+    .stat .s { grid-area: s; align-self: start; }
+    .stat .v { grid-area: v; font-size: 44px; }
+    .tile[style*="--span-p:2"] .list { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+    .tile[style*="--span-p:2"] .timeline::before { display: none; }
+    .tile[style*="--span-p:2"] .timeline.list { display: grid; row-gap: 16px; }
+  }
+
   @media (prefers-reduced-motion: reduce) { .loading .round svg { animation: none; } }
 </style>
 </head>
@@ -264,6 +354,15 @@
   <div class="errors" id="errors"></div>
   <div class="status" id="status"></div>
 </main>
+
+<div class="sheet-backdrop" id="sheet" hidden>
+  <div class="sheet-wrap" role="dialog" aria-modal="true" aria-label="Détail">
+    <button class="round glass sheet-close" id="sheetClose" type="button" aria-label="Fermer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <div id="sheetBody"></div>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -336,14 +435,17 @@
       </a>`).join('');
     const c = d.counts || {};
     return `
-      <section class="tile brief" ${L} aria-labelledby="t-brief">
+      <section class="tile brief" data-key="brief" ${L} aria-labelledby="t-brief">
         <div class="tile-head"><h2 id="t-brief">L’essentiel</h2><span>Résumé IA · ${esc(fmtTime(d.generatedAt))}</span></div>
+        <div class="fit">
         <div class="top">
           <span class="overline"><span class="prio">Priorité 1</span>${esc([SOURCE[top.source], fmtTime(top.time)].filter(Boolean).join(' · '))}</span>
           <p>${rich(top.text)}</p>
           ${top.action ? `<a class="cta" ${linkAttrs(top.link, top.source)}>${esc(top.action)} <span aria-hidden="true">→</span></a>` : ''}
         </div>
         ${rest.length ? `<div class="rest">${restHtml}</div>` : ''}
+        </div>
+        <button class="more" type="button" hidden>Tout voir</button>
         <div class="brief-foot">${esc(d.readSummary || `${plural(c.mailsTotal ?? 0, 'mail')}, ${plural((c.slackMentions ?? 0) + (c.slackDms ?? 0), 'message')} Slack et ${plural((d.projects || []).length, 'projet')} Studio lus pour toi`)}</div>
       </section>`;
   }
@@ -378,9 +480,9 @@
       </a>`).join('');
     const reconnect = (d.sources || {}).gmail === 'reconnect';
     return `
-      <section class="tile glass mails ${W(L)}" ${L} aria-labelledby="t-mails">
-        <div class="tile-head"><h2 id="t-mails">Mails importants ${list.length ? `<span class="badge">${list.length}</span>` : ''}</h2><a href="https://mail.google.com/" target="_blank" rel="noopener">Ouvrir Gmail</a></div>
-        ${rows ? `<div class="list">${rows}</div>` : (reconnect ? '<p class="empty">Gmail est à reconnecter dans les réglages de Claude (Connecteurs) pour que je puisse trier tes mails.</p>' : '<p class="empty">Aucun mail important. Belle journée.</p>')}
+      <section class="tile glass mails ${W(L)}" data-key="mails" ${L} aria-labelledby="t-mails">
+        <div class="tile-head"><h2 id="t-mails">Mails importants ${list.length ? `<span class="badge">${list.length}</span>` : ''}</h2><span class="head-actions"><button class="more" type="button" hidden>Tout voir</button><a href="https://mail.google.com/" target="_blank" rel="noopener">Ouvrir</a></span></div>
+        ${rows ? `<div class="list fit">${rows}</div>` : (reconnect ? '<p class="empty">Gmail est à reconnecter dans les réglages de Claude (Connecteurs) pour que je puisse trier tes mails.</p>' : '<p class="empty">Aucun mail important. Belle journée.</p>')}
         ${reconnect ? '' : `<div class="foot">${(d.otherMails ?? 0) > 1 ? `${esc(d.otherMails)} autres mails peuvent attendre` : `${esc(d.otherMails ?? 0)} autre mail peut attendre`}</div>`}
       </section>`;
   }
@@ -395,12 +497,12 @@
           <span class="time">${esc(fmtTime(s.time))}${GO}</span>
         </span>
         <span class="txt">${esc(s.text)}</span>
-        ${(s.awaitingReply || s.count > 1) ? `<span class="meta">${s.awaitingReply ? '<span class="await">Attend ta réponse</span>' : ''}${s.count > 1 ? `<span class="more">${esc(s.count)} messages</span>` : ''}</span>` : ''}
+        ${(s.awaitingReply || s.count > 1) ? `<span class="meta">${s.awaitingReply ? '<span class="await">Attend ta réponse</span>' : ''}${s.count > 1 ? `<span class="msgs">${esc(s.count)} messages</span>` : ''}</span>` : ''}
       </a>`).join('');
     return `
-      <section class="tile dark slack ${W(L)}" ${L} aria-labelledby="t-slack">
-        <div class="tile-head"><h2 id="t-slack">Slack ${waiting ? `<span class="badge" title="Attendent ta réponse">${waiting}</span>` : ''}</h2><a href="https://app.slack.com/client" target="_blank" rel="noopener">Ouvrir Slack</a></div>
-        ${rows ? `<div class="list">${rows}</div>` : '<p class="empty">Rien qui t’attend sur Slack.</p>'}
+      <section class="tile dark slack ${W(L)}" data-key="slack" ${L} aria-labelledby="t-slack">
+        <div class="tile-head"><h2 id="t-slack">Slack ${waiting ? `<span class="badge" title="Attendent ta réponse">${waiting}</span>` : ''}</h2><span class="head-actions"><button class="more" type="button" hidden>Tout voir</button><a href="https://app.slack.com/client" target="_blank" rel="noopener">Ouvrir</a></span></div>
+        ${rows ? `<div class="list fit">${rows}</div>` : '<p class="empty">Rien qui t’attend sur Slack.</p>'}
       </section>`;
   }
 
@@ -415,9 +517,9 @@
         </div>
       </div>`).join('');
     return `
-      <section class="tile glass studio ${W(L)}" ${L} aria-labelledby="t-studio">
-        <div class="tile-head"><h2 id="t-studio">Studio KLIMB</h2><a href="${esc(d.studioUrl || 'https://studio.goklimb.com/')}" target="_blank" rel="noopener">Ouvrir</a></div>
-        ${rows ? `<div class="timeline list">${rows}</div>` : '<p class="empty">Source Studio pas encore branchée.</p>'}
+      <section class="tile glass studio ${W(L)}" data-key="studio" ${L} aria-labelledby="t-studio">
+        <div class="tile-head"><h2 id="t-studio">Studio KLIMB</h2><span class="head-actions"><button class="more" type="button" hidden>Tout voir</button><a href="${esc(d.studioUrl || 'https://studio.goklimb.com/')}" target="_blank" rel="noopener">Ouvrir</a></span></div>
+        ${rows ? `<div class="timeline list fit">${rows}</div>` : '<p class="empty">Source Studio pas encore branchée.</p>'}
       </section>`;
   }
 
@@ -449,27 +551,24 @@
     const prio = { slack: 0.2, mails: 0.1, studio: 0 }; // à égalité, Slack puis Mails passent devant
     // Une source débranchée n'a pas de bloc : les compteurs et les pastilles du bas le signalent déjà
     const active = ['mails', 'slack', 'studio'].filter((k) => !isOff[k]).sort((a, b) => (n[b] + prio[b]) - (n[a] + prio[a]));
-    const L = (span, ot, om, extra = '') => `style="--span:${span};--o-t:${ot};--o-m:${om}" ${extra}`;
-    const out = { mails: 'hidden', slack: 'hidden', studio: 'hidden' };
     const [big, mid, small] = active;
+    // span = paysage (4 colonnes, 2 lignes) · sp = portrait (2 colonnes) · ot/op/om = ordre paysage/portrait/iPhone
+    const L = (span, ot, om, sp, op) => `style="--span:${span};--o-t:${ot};--o-m:${om};--span-p:${sp};--o-p:${op}"`;
+    const out = { mails: 'hidden', slack: 'hidden', studio: 'hidden' };
+    out.stats = L(1, 1, 1, 2, 1);
     if (active.length === 0) {
-      out.brief = L(3, 0, 0); out.stats = L(1, 1, 1);
+      out.brief = L(3, 0, 0, 2, 0);
     } else if (active.length === 1) {
-      out.brief = L(3, 0, 0); out.stats = L(1, 1, 1); out[big] = L(4, 2, 2);
+      out.brief = L(3, 0, 0, 2, 0); out[big] = L(4, 2, 2, 2, 2);
     } else if (active.length === 2) {
-      // Ligne 1 : essentiel + compteurs + la plus petite si elle est courte, sinon les deux en ligne 2
-      if (n[mid] <= 2) { out.brief = L(2, 0, 0); out.stats = L(1, 1, 1); out[mid] = L(1, 2, 3); out[big] = L(4, 3, 2); }
-      else { out.brief = L(2, 0, 0); out.stats = L(2, 1, 1, 'data-row'); out[big] = L(n[big] >= 2.5 * n[mid] ? 3 : 2, 2, 2); out[mid] = L(n[big] >= 2.5 * n[mid] ? 1 : 2, 3, 3); }
-    } else if (n[small] <= 2) {
+      if (n[mid] <= 2) { out.brief = L(2, 0, 0, 2, 0); out[mid] = L(1, 2, 3, 1, 3); out[big] = L(4, 3, 2, 1, 2); }
+      else { out.brief = L(3, 0, 0, 2, 0); out[big] = L(2, 2, 2, 1, 2); out[mid] = L(2, 3, 3, 1, 3); }
+    } else {
       // Ligne 1 : essentiel (2) + compteurs (1) + la section la plus courte (1)
       // Ligne 2 : les deux autres, la plus remplie prend plus de place
       const wideBig = n[mid] === 0 || n[big] >= 2.5 * n[mid];
-      out.brief = L(2, 0, 0); out.stats = L(1, 1, 1); out[small] = L(1, 2, 4);
-      out[big] = L(wideBig ? 3 : 2, 3, 2); out[mid] = L(wideBig ? 1 : 2, 4, 3);
-    } else {
-      // Tout est rempli : la plus remplie sur toute la largeur, les deux autres côte à côte
-      out.brief = L(2, 0, 0); out.stats = L(2, 1, 1, 'data-row');
-      out[big] = L(4, 2, 2); out[mid] = L(2, 3, 3); out[small] = L(2, 4, 4);
+      out.brief = L(2, 0, 0, 2, 0); out[small] = L(1, 2, 4, 1, 4);
+      out[big] = L(wideBig ? 3 : 2, 3, 2, 2, 2); out[mid] = L(wideBig ? 1 : 2, 4, 3, 1, 3);
     }
     return out;
   }
@@ -479,7 +578,56 @@
     const lay = layout(d);
     $('grid').innerHTML = renderBrief(d, lay.brief) + renderStats(d, lay.stats) + (lay.mails === 'hidden' ? '' : renderMails(d, lay.mails)) + (lay.slack === 'hidden' ? '' : renderSlack(d, lay.slack)) + (lay.studio === 'hidden' ? '' : renderStudio(d, lay.studio));
     renderStatus(d);
+    requestAnimationFrame(fitTiles);
   }
+
+  // Écran unique (iPad, ordinateur) : chaque bloc montre ce qui rentre, « Tout voir » ouvre le reste
+  function fitTiles() {
+    document.querySelectorAll('#grid .tile[data-key]').forEach((tile) => {
+      const fit = tile.querySelector('.fit');
+      const btn = tile.querySelector('.more');
+      if (!fit || !btn) return;
+      const clipped = fit.scrollHeight > fit.clientHeight + 4;
+      tile.classList.toggle('clipped', clipped);
+      btn.hidden = !clipped;
+      if (clipped) {
+        const box = fit.getBoundingClientRect();
+        const items = [...fit.children];
+        const hiddenCount = items.filter((el) => el.getBoundingClientRect().bottom > box.bottom + 2).length;
+        btn.textContent = hiddenCount && tile.dataset.key !== 'brief' ? `Tout voir (+${hiddenCount})` : 'Tout voir';
+      }
+    });
+  }
+  let fitTimer = null;
+  window.addEventListener('resize', () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitTiles, 120); });
+
+  let lastFocus = null;
+  function openSheet(tile) {
+    const clone = tile.cloneNode(true);
+    clone.removeAttribute('style');
+    clone.classList.remove('clipped');
+    clone.classList.add('in-sheet', 'wide');
+    clone.querySelectorAll('.more').forEach((b) => b.remove());
+    clone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+    $('sheetBody').replaceChildren(clone);
+    lastFocus = document.activeElement;
+    $('sheet').hidden = false;
+    document.body.classList.add('sheet-open');
+    $('sheetClose').focus();
+  }
+  function closeSheet() {
+    $('sheet').hidden = true;
+    document.body.classList.remove('sheet-open');
+    $('sheetBody').replaceChildren();
+    if (lastFocus) lastFocus.focus();
+  }
+  $('grid').addEventListener('click', (e) => {
+    const btn = e.target.closest('.more');
+    if (btn) openSheet(btn.closest('.tile'));
+  });
+  $('sheetClose').addEventListener('click', closeSheet);
+  $('sheet').addEventListener('click', (e) => { if (e.target === $('sheet')) closeSheet(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('sheet').hidden) closeSheet(); });
 
   // Données d'exemple tant que le premier brief n'est pas arrivé
   function demoBrief() {
