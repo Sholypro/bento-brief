@@ -34,7 +34,7 @@ Pas encore accessible depuis cette tâche : `sources.studio` = `"off"`, `project
 
 - 1 à 3 entrées, la plus importante d'abord : c'est LA priorité du moment.
 - Une vraie priorité : quelqu'un attend une action d'Alex, ou une échéance proche.
-- Chaque `text` : une phrase courte, tutoiement, français naturel. Mets en gras avec `**double astérisque**` 1 à 3 éléments clés : qui, quoi, l'échéance. Exemple : `**Micha attend tes pistes Qantum** avant **17h**, pour le comité de lundi.`
+- Chaque `text` : une phrase courte, tutoiement, français naturel. Mets en gras avec `**double astérisque**` 1 à 3 éléments clés : qui, quoi, l'échéance. Exemple : `**Marc attend tes pistes Nova** avant **17h**, pour le comité de lundi.`
 - `action` : 2 à 4 mots, verbe à l'infinitif (« Envoyer les pistes », « Valider le BAT »).
 - `source` : `gmail`, `slack` ou `studio`. `time` : date ISO du message source. `link` : le lien du mail (`viewUrl`) ou `https://app.slack.com/client`.
 - S'il n'y a rien d'important, un seul essentiel rassurant.

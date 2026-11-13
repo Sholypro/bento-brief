@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bento brief</title>
+<meta name="description" content="Ton brief Slack, Gmail et Studio KLIMB en quelques secondes">
+<meta name="theme-color" content="#8CC3E4">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14201A;
+    --ink-2: #2E3B33;
+    --forest: #1E3A2B;
+    --accent: #D7F75B;
+    --cream: #F5F1D4;
+    --glass: rgba(252, 250, 238, 0.58);
+    --glass-border: rgba(255, 255, 255, 0.7);
+    --hot: #8A2E12;
+    --hot-bg: #FFD9CC;
+    --coral: #FF8A65;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --serif: 'Instrument Serif', 'New York', Georgia, serif;
+    --sans: Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; min-height: 100%; background: var(--cream); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  /* Fond : dégradé mesh ciel, soleil, végétal + grain léger */
+  .scenery {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    background:
+      radial-gradient(55% 40% at 80% 6%, rgba(255, 244, 186, 0.95) 0%, rgba(255, 244, 186, 0) 70%),
+      radial-gradient(60% 45% at 8% 4%, rgba(132, 192, 230, 0.9) 0%, rgba(132, 192, 230, 0) 72%),
+      radial-gradient(70% 45% at 50% 42%, rgba(214, 233, 170, 0.9) 0%, rgba(214, 233, 170, 0) 75%),
+      radial-gradient(75% 55% at 95% 78%, rgba(96, 148, 62, 0.95) 0%, rgba(96, 148, 62, 0) 72%),
+      radial-gradient(80% 60% at 0% 100%, rgba(52, 102, 52, 0.95) 0%, rgba(52, 102, 52, 0) 72%),
+      linear-gradient(180deg, #A6D0EA 0%, #E8EECB 32%, #BCD78E 58%, #7DAA4E 82%, #4E8436 100%);
+  }
+  .scenery::after {
+    content: ''; position: absolute; inset: 0; opacity: 0.18; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 0 0.5 0 0 0 1 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+  .blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.55; will-change: transform; }
+  .b1 { width: 55vmax; height: 40vmax; left: -10vmax; top: 18%; background: #CFE7A6; animation: drift1 26s ease-in-out infinite alternate; }
+  .b2 { width: 45vmax; height: 35vmax; right: -12vmax; top: -6%; background: #FFEFB0; opacity: 0.6; animation: drift2 32s ease-in-out infinite alternate; }
+  .b3 { width: 60vmax; height: 40vmax; right: -15vmax; bottom: -12%; background: #5E9440; opacity: 0.5; animation: drift3 38s ease-in-out infinite alternate; }
+  @keyframes drift1 { to { transform: translate(8vmax, -4vmax) scale(1.08); } }
+  @keyframes drift2 { to { transform: translate(-6vmax, 5vmax) scale(1.1); } }
+  @keyframes drift3 { to { transform: translate(-10vmax, -3vmax) scale(0.95); } }
+  @media (prefers-reduced-motion: reduce) { .blob { animation: none; } }
+
+  .app {
+    position: relative; z-index: 1;
+    max-width: 1240px; margin: 0 auto;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(32px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    backdrop-filter: blur(24px) saturate(1.6);
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 10px 28px rgba(30,58,43,0.10);
+  }
+  .dark {
+    background: rgba(24, 46, 34, 0.8);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    backdrop-filter: blur(24px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #F4F1E4;
+  }
+  .label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+  .mono { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; }
+
+  /* Barre du haut */
+  .topbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .pill { height: 36px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; border-radius: 18px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .round { width: 44px; height: 44px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--ink); padding: 0; }
+  .round svg { transition: transform 0.4s; }
+  .loading .round svg { animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .right { display: flex; gap: 8px; align-items: center; }
+
+  header.hello { padding: 18px 6px 10px; }
+  header.hello h1 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: clamp(46px, 7vw, 60px); line-height: 0.95; letter-spacing: -0.01em; }
+  header.hello h1 em { font-style: italic; }
+  header.hello p { margin: 8px 0 0; font-size: 15px; color: var(--ink-2); }
+
+  .banner { align-self: flex-start; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; padding: 6px 12px; border-radius: 999px; background: var(--forest); color: var(--accent); }
+
+  /* Grille bento */
+  .grid { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "brief" "stats" "mails" "slack" "studio"; }
+  .tile { border-radius: 30px; padding: 18px; min-width: 0; }
+  .tile-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .tile-head a { font-size: 13px; font-weight: 600; text-decoration: none; }
+
+  /* L'essentiel */
+  .brief { grid-area: brief; background: var(--accent); color: var(--ink); display: flex; flex-direction: column; gap: 14px; box-shadow: 0 16px 40px rgba(47,74,16,0.22); }
+  .brief .label { color: #23330F; }
+  .brief strong { font-weight: 600; }
+  .top { display: flex; flex-direction: column; gap: 10px; }
+  .top p { margin: 0; font-size: 21px; line-height: 1.28; letter-spacing: -0.01em; }
+  .chip-action { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 8px 12px; border-radius: 999px; background: var(--forest); color: var(--accent); text-decoration: none; min-height: 32px; }
+  .sep { height: 1px; background: rgba(35,51,15,0.2); }
+  .rest { display: grid; gap: 12px; }
+  .rest-item { display: flex; gap: 12px; align-items: baseline; text-decoration: none; }
+  .rest-item .n { font-family: var(--serif); font-size: 22px; line-height: 1; min-width: 14px; }
+  .rest-item p { margin: 0; font-size: 15px; line-height: 1.4; }
+  .rest-item .meta { display: block; margin-top: 3px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; color: #34471A; text-transform: uppercase; }
+  .brief-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12px; color: #34471A; }
+
+  /* Compteurs */
+  .stats { grid-area: stats; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .stat { border-radius: 24px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+  .stat .v { font-family: var(--serif); font-size: 44px; line-height: 1; }
+  .stat .v.hot { color: #B23F18; }
+  .stat .s { font-size: 12px; color: var(--ink-2); line-height: 1.3; }
+  .stat .label { font-size: 10px; }
+
+  /* Listes */
+  .mails { grid-area: mails; }
+  .row { display: flex; gap: 12px; padding: 12px 0; border-top: 1px solid rgba(20,32,26,0.08); text-decoration: none; color: inherit; }
+  .avatar { width: 38px; height: 38px; border-radius: 19px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; color: var(--ink); }
+  .row-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+  .row-top { display: flex; justify-content: space-between; gap: 8px; }
+  .row-top b { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .subject { font-size: 14px; color: #24302A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tags { display: flex; gap: 8px; align-items: center; margin-top: 4px; font-size: 12px; color: var(--ink-2); }
+  .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; padding: 4px 8px; border-radius: 999px; text-transform: uppercase; }
+  .tag.urgent { background: var(--hot-bg); color: var(--hot); }
+  .tag.client { background: #E4F7A8; color: #2F4A10; }
+  .tag.valider { background: rgba(20,32,26,0.08); color: var(--ink); }
+  .tag.info { background: #D7E9F2; color: #1D3A4A; }
+  .foot { font-size: 12px; color: var(--ink-2); padding-top: 10px; border-top: 1px solid rgba(20,32,26,0.08); }
+
+  .slack { grid-area: slack; }
+  .slack .label { color: var(--accent); }
+  .slack .tile-head a { color: #F4F1E4; }
+  .slack .row { flex-direction: column; gap: 4px; border-top-color: rgba(255,255,255,0.1); }
+  .slack .where { font-family: var(--mono); font-size: 11px; color: #B9C7B4; }
+  .slack .where span { color: #F4F1E4; }
+  .slack .txt { font-size: 14px; line-height: 1.4; }
+  .slack .empty { color: #B9C7B4; }
+  .slack .row { opacity: 0.72; }
+  .slack .row.unread { opacity: 1; }
+  .slack .row.unread .txt { font-weight: 600; }
+  .udot { display: inline-block; width: 8px; height: 8px; border-radius: 4px; background: var(--accent); margin-right: 8px; vertical-align: 1px; }
+  .count { font-style: normal; color: var(--accent); }
+  .await { align-self: flex-start; margin-top: 4px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 8px; border-radius: 999px; background: rgba(215,247,91,0.16); color: var(--accent); }
+
+  /* Studio timeline */
+  .studio { grid-area: studio; display: flex; flex-direction: column; gap: 10px; }
+  .timeline { position: relative; display: flex; flex-direction: column; gap: 18px; padding: 6px 0; }
+  .timeline::before { content: ''; position: absolute; left: 9px; top: 14px; bottom: 14px; width: 2px; background: var(--forest); opacity: 0.25; }
+  .proj { position: relative; display: flex; gap: 14px; align-items: flex-start; }
+  .dot { width: 20px; height: 20px; border-radius: 10px; flex-shrink: 0; border: 2px solid var(--forest); background: rgba(252,250,238,0.95); }
+  .dot.hot { background: var(--coral); }
+  .dot.done { background: var(--forest); }
+  .proj-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .proj-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .proj-top b { font-size: 15px; font-weight: 600; }
+  .proj-top b span { font-weight: 400; color: var(--ink-2); }
+  .due { font-family: var(--mono); font-size: 11px; white-space: nowrap; color: var(--ink-2); text-transform: uppercase; }
+  .due.hot { color: var(--hot); }
+  .bar { height: 4px; border-radius: 2px; background: rgba(20,32,26,0.1); }
+  .bar i { display: block; height: 4px; border-radius: 2px; background: var(--forest); }
+
+  .empty { font-size: 14px; color: var(--ink-2); padding: 10px 0; }
+  .status { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding-top: 6px; }
+  .status span { font-family: var(--mono); font-size: 10px; letter-spacing: 0.06em; padding: 5px 10px; border-radius: 999px; text-transform: uppercase; }
+  .errors { font-size: 12px; color: var(--hot); text-align: center; }
+
+  /* Écran code d'accès */
+  .gate { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(20,32,26,0.25); }
+  .gate.open { display: flex; }
+  .gate form { width: min(380px, 100%); border-radius: 30px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+  .gate h2 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 34px; }
+  .gate label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+  .gate input { height: 48px; border-radius: 16px; border: 1px solid rgba(20,32,26,0.2); background: rgba(255,255,255,0.8); padding: 0 14px; font: 16px var(--sans); color: var(--ink); }
+  .gate button { height: 48px; border-radius: 24px; border: 0; background: var(--forest); color: var(--accent); font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
+  .gate .err { font-size: 13px; color: var(--hot); min-height: 18px; }
+
+  /* Squelette de chargement */
+  .skel { border-radius: 30px; min-height: 140px; }
+
+  /* iPad et grands écrans */
+  @media (min-width: 820px) {
+    .app { padding-left: max(28px, env(safe-area-inset-left)); padding-right: max(28px, env(safe-area-inset-right)); gap: 16px; }
+    .grid { gap: 14px; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-areas: "brief brief stats studio" "mails mails slack studio"; }
+    .tile { padding: 22px; border-radius: 32px; }
+    .top p { font-size: 24px; line-height: 1.25; }
+    .rest { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .stats { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .stat { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "l v" "s v"; align-items: center; column-gap: 12px; padding: 14px 18px; }
+    .stat .label { grid-area: l; align-self: end; }
+    .stat .s { grid-area: s; align-self: start; }
+    .stat .v { grid-area: v; font-size: 52px; }
+    .stat .s { font-size: 13px; }
+    .topbar { order: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .loading .round svg { animation: none; } }
+</style>
+</head>
+<body>
+
+<div class="scenery" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
+
+<main class="app" id="app">
+  <div class="topbar">
+    <span class="pill glass" id="today">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <span id="todayText"></span>
+    </span>
+    <div class="right">
+      <span class="pill glass" id="updated">--:--</span>
+      <button class="round glass" id="refresh" aria-label="Recharger le dernier brief">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <header class="hello">
+    <h1 id="greeting">Bonjour</h1>
+    <p id="headline">Je prépare ton brief…</p>
+  </header>
+
+  <span class="banner" id="demoBanner" hidden>Aperçu · données d’exemple</span>
+
+  <div class="grid" id="grid">
+    <div class="tile skel glass" style="grid-area: brief"></div>
+    <div class="tile skel glass" style="grid-area: stats"></div>
+    <div class="tile skel glass" style="grid-area: mails"></div>
+  </div>
+
+  <div class="errors" id="errors"></div>
+  <div class="status" id="status"></div>
+</main>
+
+<script>
+(() => {
+  const KEY = 'bento.key';
+  const CACHE = 'bento.brief';
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+  };
+
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const rich = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  const safeUrl = (u) => (/^https?:\/\//.test(u || '') ? u : null);
+  const linkAttrs = (u) => (safeUrl(u) ? `href="${esc(u)}" target="_blank" rel="noopener"` : '');
+  const TZ = 'Europe/Paris';
+
+  function sameDay(a, b) {
+    const f = (d) => d.toLocaleDateString('fr-FR', { timeZone: TZ });
+    return f(a) === f(b);
+  }
+  function fmtTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const now = new Date();
+    if (sameDay(d, now)) return d.toLocaleTimeString('fr-FR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
+    const y = new Date(now); y.setDate(y.getDate() - 1);
+    if (sameDay(d, y)) return 'Hier';
+    return d.toLocaleDateString('fr-FR', { timeZone: TZ, weekday: 'short', day: 'numeric' });
+  }
+  function fmtDue(p) {
+    if (p.done) return 'Livré';
+    if (!p.due) return '';
+    const d = new Date(p.due + (p.due.length === 10 ? 'T12:00:00' : ''));
+    if (isNaN(d)) return String(p.due);
+    return d.toLocaleDateString('fr-FR', { timeZone: TZ, weekday: 'short', day: 'numeric' });
+  }
+  function initials(name) {
+    const parts = String(name).replace(/[^\p{L}\s]/gu, ' ').trim().split(/\s+/);
+    return ((parts[0]?.[0] || '') + (parts[1]?.[0] || parts[0]?.[1] || '')).toUpperCase();
+  }
+  const AVATARS = ['#FFD9CC', '#E4F7A8', '#D7E9F2', '#F6DDF0', '#FFE9B8'];
+  const avatarColor = (name) => AVATARS[[...String(name)].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATARS.length];
+  const SOURCE = { gmail: 'Gmail', slack: 'Slack', studio: 'Studio' };
+  const plural = (n, s) => `${n} ${s}${n > 1 ? 's' : ''}`;
+
+  function setHeader(data) {
+    const now = new Date();
+    $('todayText').textContent = now.toLocaleDateString('fr-FR', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' });
+    const hour = Number(now.toLocaleTimeString('fr-FR', { timeZone: TZ, hour: '2-digit' }).slice(0, 2));
+    const hello = hour >= 18 ? 'Bonsoir' : 'Bonjour';
+    const name = data?.name || 'Sholy';
+    $('greeting').innerHTML = `${hello} <em>${esc(name)}</em>`;
+    if (data) {
+      $('headline').textContent = data.headline || '';
+      $('updated').textContent = fmtTime(data.generatedAt);
+      $('demoBanner').hidden = !data.demo;
+    }
+  }
+
+  function renderBrief(d) {
+    const [top, ...rest] = d.essentials || [];
+    if (!top) return `<section class="tile brief"><span class="label">:: L'essentiel</span><p class="empty">Rien à signaler.</p></section>`;
+    const topMeta = ['Priorité 1', SOURCE[top.source] || '', fmtTime(top.time)].filter(Boolean).join(' · ');
+    const restHtml = rest.map((e, i) => `
+      <a class="rest-item" ${linkAttrs(e.link)}>
+        <span class="n">${i + 2}</span>
+        <span><p>${rich(e.text)}</p><span class="meta">${esc([SOURCE[e.source], fmtTime(e.time)].filter(Boolean).join(' · '))}</span></span>
+      </a>`).join('');
+    const c = d.counts || {};
+    return `
+      <section class="tile brief" aria-labelledby="t-brief">
+        <div class="tile-head"><span class="label" id="t-brief">:: L'essentiel · Résumé IA</span></div>
+        <div class="top">
+          <span class="label">${esc(topMeta)}</span>
+          <p>${rich(top.text)}</p>
+          ${top.action ? `<a class="chip-action" ${linkAttrs(top.link)}>→ ${esc(top.action)}</a>` : ''}
+        </div>
+        ${rest.length ? `<div class="sep"></div><div class="rest">${restHtml}</div>` : ''}
+        <div class="brief-foot"><span>${esc(d.readSummary || `${plural(c.mailsTotal ?? 0, 'mail')}, ${plural((c.slackMentions ?? 0) + (c.slackDms ?? 0), 'message')} Slack et ${plural((d.projects || []).length, 'projet')} Studio lus pour toi`)}</span></div>
+      </section>`;
+  }
+
+  function renderStats(d) {
+    const c = d.counts || {};
+    const src = d.sources || {};
+    const off = (k) => src[k] === 'off' || src[k] === 'reconnect' || src[k] === 'error';
+    const stats = [
+      off('gmail') ? { label: 'Mails', v: '–', s: src.gmail === 'reconnect' ? 'Gmail à reconnecter' : 'Gmail non branché' } : { label: 'Mails', v: c.mailsImportant ?? 0, s: `importants sur ${c.mailsTotal ?? 0}` },
+      { label: 'Slack', v: c.slackMentions ?? 0, s: `mention${(c.slackMentions ?? 0) > 1 ? 's' : ''} + ${c.slackDms ?? 0} DM` },
+      off('studio') ? { label: 'Studio', v: '–', s: 'pas encore branché' } : { label: 'Studio', v: c.studioHot ?? 0, s: 'deadlines sous 7 jours', hot: (c.studioHot ?? 0) > 0 }
+    ];
+    return `<div class="stats">${stats.map((s) => `
+      <div class="stat glass">
+        <span class="label">${esc(s.label)}</span>
+        <span class="v ${s.hot ? 'hot' : ''}">${esc(s.v)}</span>
+        <span class="s">${esc(s.s)}</span>
+      </div>`).join('')}</div>`;
+  }
+
+  function renderMails(d) {
+    const rows = (d.mails || []).map((m) => `
+      <a class="row" ${linkAttrs(m.link)}>
+        <span class="avatar" style="background:${avatarColor(m.from)}">${esc(initials(m.from))}</span>
+        <span class="row-body">
+          <span class="row-top"><b>${esc(m.from)}</b><span class="mono">${esc(fmtTime(m.time))}</span></span>
+          <span class="subject">${esc(m.subject)}</span>
+          <span class="tags"><span class="tag ${esc(m.tag)}">${esc({ urgent: 'Urgent', client: 'Client', valider: 'À valider', info: 'Info' }[m.tag] || 'Info')}</span><span>${esc(m.why || '')}</span></span>
+        </span>
+      </a>`).join('');
+    return `
+      <section class="tile glass mails" aria-labelledby="t-mails">
+        <div class="tile-head"><span class="label" id="t-mails">:: Mails prioritaires</span><a href="https://mail.google.com/" target="_blank" rel="noopener">Tout voir</a></div>
+        ${rows || ((d.sources || {}).gmail === 'reconnect' ? '<p class="empty">Gmail est à reconnecter dans les réglages de Claude (Connecteurs) pour que je puisse trier tes mails.</p>' : '<p class="empty">Aucun mail important. Belle journée.</p>')}
+        ${(d.sources || {}).gmail === 'reconnect' ? '' : `<div class="foot">${(d.otherMails ?? 0) > 1 ? `${esc(d.otherMails)} autres mails classés` : `${esc(d.otherMails ?? 0)} autre mail classé`} « peut attendre »</div>`}
+      </section>`;
+  }
+
+  function renderSlack(d) {
+    const list = (d.slack || []).slice(0, 5);
+    const unread = list.filter((s) => s.unread).length;
+    const rows = list.map((s) => `
+      <a class="row ${s.unread ? 'unread' : ''}" ${linkAttrs(s.link)}>
+        <span class="row-top">
+          <span class="where">${s.unread ? '<i class="udot" aria-label="Non lu"></i>' : ''}${esc(s.where)} · <span>${esc(s.who)}</span>${s.count > 1 ? ` <em class="count">+${esc(s.count - 1)}</em>` : ''}</span>
+          <span class="where">${esc(fmtTime(s.time))}</span>
+        </span>
+        <span class="txt">${esc(s.text)}</span>
+        ${s.awaitingReply ? '<span class="await">Attend ta réponse</span>' : ''}
+      </a>`).join('');
+    return `
+      <section class="tile dark slack" aria-labelledby="t-slack">
+        <div class="tile-head"><span class="label" id="t-slack">:: Slack · pour toi${unread ? ` · ${unread} non lu${unread > 1 ? 's' : ''}` : ''}</span><a href="https://app.slack.com/client" target="_blank" rel="noopener">Ouvrir</a></div>
+        ${rows || '<p class="empty">Rien qui t’attend sur Slack.</p>'}
+      </section>`;
+  }
+
+  function renderStudio(d) {
+    const rows = (d.projects || []).map((p) => `
+      <div class="proj">
+        <span class="dot ${p.done ? 'done' : p.hot ? 'hot' : ''}"></span>
+        <div class="proj-body">
+          <div class="proj-top"><b>${esc(p.client)} <span>${esc(p.what)}</span></b><span class="due ${p.hot ? 'hot' : ''}">${esc(fmtDue(p))}</span></div>
+          ${p.pct !== null && p.pct !== undefined ? `<div class="bar"><i style="width:${Math.max(0, Math.min(100, Number(p.pct)))}%"></i></div>` : ''}
+        </div>
+      </div>`).join('');
+    return `
+      <section class="tile glass studio" aria-labelledby="t-studio">
+        <div class="tile-head"><span class="label" id="t-studio">:: Studio KLIMB</span><a href="${esc(d.studioUrl || 'https://studio.goklimb.com/')}" target="_blank" rel="noopener">Ouvrir</a></div>
+        ${rows ? `<div class="timeline">${rows}</div>` : '<p class="empty">Source Studio pas encore branchée.</p>'}
+      </section>`;
+  }
+
+  function renderStatus(d) {
+    const labels = { ok: 'OK', off: 'off', error: 'erreur', demo: 'démo', reconnect: 'à reconnecter' };
+    const colors = { ok: 'background:rgba(30,58,43,0.85);color:#D7F75B', off: 'background:rgba(252,250,238,0.7);color:#2E3B33', error: 'background:#FFD9CC;color:#8A2E12', demo: 'background:rgba(252,250,238,0.7);color:#2E3B33', reconnect: 'background:#FFD9CC;color:#8A2E12' };
+    const s = d.sources || {};
+    $('status').innerHTML = ['gmail', 'slack', 'studio', 'ai'].map((k) => {
+      const v = s[k] || 'off';
+      return `<span style="${colors[v] || colors.off}">${esc({ gmail: 'Gmail', slack: 'Slack', studio: 'Studio', ai: 'IA' }[k])} ${esc(labels[v] || v)}</span>`;
+    }).join('');
+    $('errors').textContent = (d.errors || []).join(' · ');
+  }
+
+  function render(d) {
+    setHeader(d);
+    $('grid').innerHTML = renderBrief(d) + renderStats(d) + renderMails(d) + renderSlack(d) + renderStudio(d);
+    renderStatus(d);
+  }
+
+  // Données d'exemple tant que le premier brief n'est pas arrivé
+  function demoBrief() {
+    const now = new Date();
+    const at = (h, m, off = 0) => { const d = new Date(now); d.setDate(d.getDate() + off); d.setHours(h, m, 0, 0); return d.toISOString(); };
+    const inDays = (n) => { const d = new Date(now); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+    return {
+      demo: true, name: 'Sholy', generatedAt: now.toISOString(),
+      headline: 'Aperçu avec des données d’exemple. Le premier vrai brief arrive bientôt.',
+      essentials: [
+        { text: '**Marc attend tes pistes Nova** avant **17h**, pour le comité de lundi.', source: 'gmail', time: at(11, 42), action: 'Envoyer les pistes' },
+        { text: '**Helio a répondu** sur la piste collage : **2 retours** à intégrer.', source: 'gmail', time: at(10, 15) },
+        { text: '**Slack calme** : rien ne bloque avant lundi.', source: 'slack', time: at(12, 58) }
+      ],
+      counts: { mailsImportant: 3, mailsTotal: 23, slackMentions: 2, slackDms: 3, slackUnread: 2, studioHot: 2 },
+      mails: [
+        { from: 'Marc · Nova', subject: 'Pistes DA ASCII pour le comité de lundi', time: at(11, 42), tag: 'urgent', why: 'Deadline aujourd’hui' },
+        { from: 'Helio', subject: 'Retours sur la piste collage papier', time: at(10, 15), tag: 'client', why: 'Réponse attendue' },
+        { from: 'Orbit', subject: 'BAT merch tee + sweat à valider', time: at(9, 3), tag: 'valider', why: 'Fichier joint' }
+      ],
+      otherMails: 20,
+      slack: [
+        { where: '#nova-studio', who: 'Léo', text: '@Alex tu peux partager le lien Figma des pistes ?', time: at(12, 58), unread: true, awaitingReply: true, count: 1 },
+        { where: 'DM', who: 'Clara', text: 'J’ai mis dans le channel Nova les retours, tu pourras jeter un œil !', time: at(12, 6), unread: true, awaitingReply: true, count: 2 },
+        { where: 'DM', who: 'Hugo', text: 'Point process design décalé à 16h', time: at(11, 20), count: 1 },
+        { where: 'Groupe', who: 'Inès', text: 'Sinon à part ça c’est bon ?', time: at(10, 1), awaitingReply: true, count: 3 },
+        { where: '#studio', who: 'Sarah', text: '@Alex dispo pour une review Atlas lundi ?', time: at(17, 40, -1), count: 1 }
+      ],
+      projects: [
+        { client: 'Nova', what: 'Rebranding', due: inDays(3), pct: 70, hot: true },
+        { client: 'Helio', what: 'Pistes créatives', due: inDays(7), pct: 45, hot: true },
+        { client: 'Ledger', what: 'Audit de marque', due: inDays(11), pct: 30 },
+        { client: 'Orbit', what: 'Merch', due: null, pct: 100, done: true }
+      ],
+      sources: { gmail: 'demo', slack: 'demo', studio: 'demo', ai: 'demo' },
+      errors: []
+    };
+  }
+
+  const useCap = (n) => (window.claude && typeof window.claude.use === 'function') ? window.claude.use(n) : Promise.resolve(null);
+
+  // Le brief est écrit toutes les heures par Claude dans la base de la page (document brief/latest)
+  let stop = null;
+  let gotLive = false;
+  function note(msg) { $('errors').textContent = msg || ''; }
+
+  async function connect() {
+    document.body.classList.add('loading');
+    const timer = setTimeout(() => { if (!gotLive) note('Le dernier brief ne répond pas encore, affichage de la dernière version connue.'); }, 10000);
+    const db = await useCap('db');
+    if (!db) {
+      clearTimeout(timer);
+      document.body.classList.remove('loading');
+      note('Aperçu public avec des données d’exemple. Ton vrai brief reste privé dans ta page Claude.');
+      return;
+    }
+    if (stop) stop();
+    stop = db.doc('brief/latest').onSnapshot((snap) => {
+      if (!snap.metadata.fromCache) { gotLive = true; clearTimeout(timer); document.body.classList.remove('loading'); }
+      const data = snap.exists ? snap.data() : null;
+      if (data) { render(data); if (!snap.metadata.fromCache) note((data.errors || []).join(' · ')); }
+      else if (!snap.metadata.fromCache) render(demoBrief());
+    }, (err) => {
+      clearTimeout(timer);
+      document.body.classList.remove('loading');
+      note('Impossible de lire le brief (' + err.code + ').');
+    });
+  }
+
+  $('refresh').addEventListener('click', async () => {
+    const db = await useCap('db');
+    if (!db) return;
+    document.body.classList.add('loading');
+    try { const snap = await db.doc('brief/latest').get(); if (snap.exists) render(snap.data()); }
+    catch (e) { note('Impossible d’actualiser (' + (e.code || 'erreur') + ').'); }
+    finally { document.body.classList.remove('loading'); }
+  });
+
+  setHeader(null);
+  render(demoBrief());
+  connect();
+})();
+</script>
+</body>
+</html>
