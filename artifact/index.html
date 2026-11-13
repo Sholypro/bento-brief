@@ -149,6 +149,8 @@
   .tag.client { background: #E4F7A8; color: #2F4A10; }
   .tag.valider { background: rgba(20,32,26,0.1); color: var(--ink); }
   .tag.info { background: #D7E9F2; color: #1D3A4A; }
+  .acct { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgba(20,32,26,0.08); color: var(--ink-2); }
+  .acct.klimb { background: var(--forest); color: var(--accent); }
   /* Chaque message est une carte cliquable */
   .list { row-gap: 8px; column-gap: 10px; margin-top: 6px; align-content: start; }
   a.row { border-top: 0; padding: 14px; border-radius: 18px; background: rgba(255,255,255,0.45); transition: background 0.15s, transform 0.15s; }
@@ -485,7 +487,7 @@
       <a class="row" ${linkAttrs(m.link, 'gmail')} title="Ouvrir le mail dans Gmail">
         <span class="avatar" aria-hidden="true" style="background:${avatarColor(m.from)}">${esc(initials(m.from))}</span>
         <span class="row-body">
-          <span class="row-top"><b>${esc(m.from)}</b><span class="time">${esc(fmtTime(m.time))}${GO}</span></span>
+          <span class="row-top"><b>${esc(m.from)}</b><span class="time">${m.account ? `<span class="acct ${esc(m.account)}">${m.account === 'klimb' ? 'KLIMB' : 'Perso'}</span>` : ''}${esc(fmtTime(m.time))}${GO}</span></span>
           <span class="subject">${esc(m.subject)}</span>
           <span class="tags"><span class="tag ${esc(m.tag)}">${esc({ urgent: 'Urgent', client: 'Client', valider: 'À valider', info: 'Info' }[m.tag] || 'Info')}</span><span>${esc(m.why || '')}</span></span>
         </span>
@@ -662,9 +664,9 @@
       ],
       counts: { mailsImportant: 3, mailsTotal: 23, slackMentions: 2, slackDms: 3, slackUnread: 2, studioHot: 2 },
       mails: [
-        { from: 'Marc · Nova', subject: 'Pistes DA ASCII pour le comité de lundi', time: at(11, 42), tag: 'urgent', why: 'Deadline aujourd’hui' },
-        { from: 'Helio', subject: 'Retours sur la piste collage papier', time: at(10, 15), tag: 'client', why: 'Réponse attendue' },
-        { from: 'Orbit', subject: 'BAT merch tee + sweat à valider', time: at(9, 3), tag: 'valider', why: 'Fichier joint' }
+        { from: 'Marc · Nova', subject: 'Pistes DA ASCII pour le comité de lundi', time: at(11, 42), tag: 'urgent', why: 'Deadline aujourd’hui', account: 'klimb' },
+        { from: 'Helio', subject: 'Retours sur la piste collage papier', time: at(10, 15), tag: 'client', why: 'Réponse attendue', account: 'klimb' },
+        { from: 'Orbit', subject: 'BAT merch tee + sweat à valider', time: at(9, 3), tag: 'valider', why: 'Fichier joint', account: 'perso' }
       ],
       otherMails: 20,
       slack: [
