@@ -266,7 +266,13 @@
     .errors { font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .tile { min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 20px 22px; }
     .fit { flex: 1 1 auto; min-height: 0; overflow: hidden; }
-    .tile.clipped .fit { -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent); mask-image: linear-gradient(to bottom, #000 82%, transparent); }
+    /* Les listes défilent dans leur bloc (glisser du doigt), avec accroche carte par carte */
+    .list.fit { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scroll-snap-type: y proximity; scrollbar-width: none; padding-bottom: 4px; }
+    .list.fit::-webkit-scrollbar { display: none; }
+    .list.fit > * { scroll-snap-align: start; }
+    .tile.clipped .fit { --ft: 0px; --fb: 40px; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft), #000 calc(100% - var(--fb)), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft), #000 calc(100% - var(--fb)), transparent 100%); }
+    .tile.clipped .fit.scrolled { --ft: 28px; }
+    .tile.clipped .fit.at-end { --fb: 0px; }
     .brief { gap: 12px; }
     .brief .fit { display: flex; flex-direction: column; gap: 12px; }
     .top { padding: 16px; gap: 10px; flex-shrink: 0; }
@@ -300,7 +306,13 @@
     .errors { font-size: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .tile { min-height: 0; display: flex; flex-direction: column; overflow: hidden; padding: 20px 22px; }
     .fit { flex: 1 1 auto; min-height: 0; overflow: hidden; }
-    .tile.clipped .fit { -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent); mask-image: linear-gradient(to bottom, #000 82%, transparent); }
+    /* Les listes défilent dans leur bloc (glisser du doigt), avec accroche carte par carte */
+    .list.fit { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scroll-snap-type: y proximity; scrollbar-width: none; padding-bottom: 4px; }
+    .list.fit::-webkit-scrollbar { display: none; }
+    .list.fit > * { scroll-snap-align: start; }
+    .tile.clipped .fit { --ft: 0px; --fb: 40px; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft), #000 calc(100% - var(--fb)), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 var(--ft), #000 calc(100% - var(--fb)), transparent 100%); }
+    .tile.clipped .fit.scrolled { --ft: 28px; }
+    .tile.clipped .fit.at-end { --fb: 0px; }
     .brief .fit { display: flex; flex-direction: column; gap: 12px; }
     .top { flex-shrink: 0; }
     .top p { font-size: 26px; }
@@ -588,6 +600,12 @@
       const btn = tile.querySelector('.more');
       if (!fit || !btn) return;
       const clipped = fit.scrollHeight > fit.clientHeight + 4;
+      const onScroll = () => {
+        fit.classList.toggle('scrolled', fit.scrollTop > 4);
+        fit.classList.toggle('at-end', fit.scrollTop + fit.clientHeight >= fit.scrollHeight - 4);
+      };
+      if (!fit.dataset.scrollBound) { fit.addEventListener('scroll', onScroll, { passive: true }); fit.dataset.scrollBound = '1'; }
+      onScroll();
       tile.classList.toggle('clipped', clipped);
       btn.hidden = !clipped;
       if (clipped) {
