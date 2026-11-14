@@ -1047,7 +1047,9 @@
       <div class="panel-actions">
         <button type="button" class="btn ghost" data-act="goto" data-src="gmail">Régler les boîtes mail</button>
         <button type="button" class="btn ghost" data-act="set-key">${live() ? 'Changer de clé d’accès' : 'Ajouter ma clé d’accès'}</button>
-      </div>`;
+        <button type="button" class="btn ghost" data-act="force-update">Forcer la mise à jour</button>
+      </div>
+      <p class="hint" style="margin-top:12px">Version ${esc(BUILD.startsWith('__') ? 'locale' : BUILD.replace(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2}).*/, '$3/$2 à $4:$5 UTC'))}</p>`;
   }
 
   // Comptes Google reliés à l'app (lus dans la base, sans jamais voir les jetons)
@@ -1113,6 +1115,13 @@
     const next = baseCfg();
     if (b.dataset.act === 'goto') return openSource(b.dataset.src);
     if (b.dataset.act === 'set-key') { closeSheet(); return askKey(); }
+    if (b.dataset.act === 'force-update') {
+      toast('Mise à jour…');
+      try { if (window.caches) for (const k of await caches.keys()) await caches.delete(k); } catch {}
+      try { if (navigator.serviceWorker) for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister(); } catch {}
+      const q = new URLSearchParams(location.search); q.set('v', String(Date.now()));
+      return location.replace(`${location.pathname}?${q.toString()}`);
+    }
     if (b.dataset.act === 'google') { const m = next.mailboxes[i] || {}; return connectGoogle(m.address, m.label); }
     if (b.dataset.act === 'studio-clear') { store.set(STUDIO, '{}'); const n = baseCfg(); delete n.studio; await saveCfg(n); toast('Studio débranché sur tous tes appareils.'); renderPanel(); return load(); }
     if (b.dataset.act === 'remove') {
@@ -1331,6 +1340,20 @@
 
   let busy = false;
   let lastRaw = null;
+  let pingedAt = 0;
+  function deviceId() {
+    let id = store.get('bento.device');
+    if (!id) { id = `dev_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`; store.set('bento.device', id); }
+    return id;
+  }
+  async function ping(extra) {
+    if (!live() || Date.now() - pingedAt < 60 * 1000) return;
+    pingedAt = Date.now();
+    const ua = navigator.userAgent;
+    const app = /BentoBrief|Bento\//.test(ua) || !!(window.webkit && window.webkit.messageHandlers);
+    const info = { build: BUILD, app: app ? 'ios-app' : (navigator.standalone ? 'ecran-accueil' : 'navigateur'), ua: ua.slice(0, 160), screen: `${screen.width}x${screen.height}`, at: new Date().toISOString(), ...extra };
+    try { await rpc('bento_ping', { p_key: accessKey, p_device: deviceId(), p_info: info }); } catch {}
+  }
   // Studio : rafraîchi toutes les 3 minutes (l'API est lue en direct par l'app)
   async function refreshStudio() {
     if (!live() || !lastRaw || !studioCfg().url || busy) return;
@@ -1359,6 +1382,7 @@
         try { projects = await loadStudio(); } catch (e2) { sErr = e2.code || 'erreur'; }
       }
       if (projects) pushStudio(projects);
+      ping({ studio: { configured: !!studioCfg().url, local: !!localStudio().url, inBase: !!(cfg && cfg.studio && cfg.studio.url), ok: !!projects, tasks: projects ? projects.length : 0, err: sErr } });
       if (out.brief) {
         lastRaw = out.brief;
         const d = merge(out.brief, projects, sErr);
