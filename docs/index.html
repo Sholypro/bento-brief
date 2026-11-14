@@ -208,6 +208,15 @@
   .due { font-size: 14px; font-weight: 600; white-space: nowrap; color: var(--ink-2); }
   .due.hot { color: var(--hot); font-weight: 700; }
   .bar { height: 6px; border-radius: 3px; background: rgba(20,32,26,0.12); margin-top: 4px; }
+  a.proj { color: inherit; text-decoration: none; border-radius: 14px; }
+  a.proj:hover .proj-top b { text-decoration: underline; text-underline-offset: 3px; }
+  .dot.block { background: repeating-linear-gradient(45deg, var(--coral) 0 3px, rgba(252,250,238,0.95) 3px 6px); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+  .tag-st { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: rgba(20,32,26,0.08); color: var(--ink); }
+  .tag-st.today { background: var(--forest); color: var(--accent); }
+  .tag-st.warn { background: #FFD9CC; color: #8A2E12; }
+  .studio-sum { margin: -4px 0 4px; font-size: 14px; color: var(--ink-2); }
+  .studio-sum b { color: var(--ink); }
   .bar i { display: block; height: 6px; border-radius: 3px; background: var(--forest); }
 
   .empty { font-size: 15px; line-height: 1.45; color: var(--ink-2); padding: 10px 0; margin: 0; }
@@ -541,8 +550,8 @@
       <div>
         <b>Studio KLIMB <small>Plus tard</small></b>
         <p>Quand l’API du Studio est prête, colle son adresse et sa clé. Tu pourras aussi le faire depuis la pastille Studio.</p>
-        <input id="obStudioUrl" type="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://…/api/…" aria-label="Adresse de l’API Studio">
-        <input id="obStudioKey" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Clé de l’API (si besoin)" aria-label="Clé de l’API Studio">
+        <input id="obStudioUrl" type="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://studio.goklimb.com/api/public/studio-tasks" aria-label="Adresse de l’API Studio">
+        <input id="obStudioKey" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Clé de l’API (studio_…)" aria-label="Clé de l’API Studio">
       </div>
     </div>
     <p class="err" id="obErr" role="alert"></p>
@@ -667,7 +676,7 @@
     const stats = [
       off('gmail') ? { k: 'Mails', v: '–', s: src.gmail === 'reconnect' ? 'Gmail à reconnecter' : 'Gmail non branché' } : { k: 'Mails', v: c.mailsImportant ?? 0, s: `importants sur ${c.mailsTotal ?? 0} non lus` },
       { k: 'Slack', v: (d.slack || []).filter((x) => x.awaitingReply).length, s: 'attendent ta réponse' },
-      off('studio') ? { k: 'Studio', v: '–', s: 'pas encore branché' } : { k: 'Studio', v: c.studioHot ?? 0, s: 'deadlines sous 7 jours', hot: (c.studioHot ?? 0) > 0 }
+      off('studio') ? { k: 'Studio', v: '–', s: 'pas encore branché' } : { k: 'Studio', v: c.studioHot ?? 0, s: 'urgentes, bloquées ou à rendre', hot: (c.studioHot ?? 0) > 0 }
     ];
     return `<div class="stats" ${L}>${stats.map((s) => `
       <div class="stat glass">
@@ -716,20 +725,45 @@
       </section>`;
   }
 
+  const ST_LABEL = { aujourdhui: 'Aujourd’hui', en_cours: 'En cours', a_faire: 'À faire', revue_klimb: 'Revue KLIMB', revue_client: 'Revue client', idees: 'Idée' };
+  function taskDue(t) {
+    if (!t.due) return '';
+    const today = new Date().toLocaleDateString('fr-CA', { timeZone: TZ });
+    const dd = new Date(`${t.due}T12:00:00`);
+    if (isNaN(dd)) return String(t.due);
+    const lbl = dd.toLocaleDateString('fr-FR', { timeZone: TZ, day: 'numeric', month: 'short' });
+    if (t.due < today) return `En retard · ${lbl}`;
+    if (t.due === today) return 'Aujourd’hui';
+    const tomorrow = new Date(Date.now() + 864e5).toLocaleDateString('fr-CA', { timeZone: TZ });
+    if (t.due === tomorrow) return 'Demain';
+    return dd.toLocaleDateString('fr-FR', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' });
+  }
   function renderStudio(d, L = '') {
-    const rows = (d.projects || []).map((p) => `
-      <div class="proj">
-        <span class="dot ${p.done ? 'done' : p.hot ? 'hot' : ''}" aria-hidden="true"></span>
+    const sc = d.studioCounts || null;
+    const rows = (d.projects || []).map((p) => {
+      const tag = p.status ? `<span class="tag-st ${p.status === 'aujourdhui' ? 'today' : ''}">${esc(ST_LABEL[p.status] || p.status)}</span>` : '';
+      const flags = `${p.urgent ? '<span class="tag-st warn">Urgent</span>' : ''}${p.blocked ? '<span class="tag-st warn">Bloquée</span>' : ''}`;
+      const inner = `
+        <span class="dot ${p.blocked ? 'block' : p.done ? 'done' : p.hot ? 'hot' : ''}" aria-hidden="true"></span>
         <div class="proj-body">
-          <div class="proj-top"><b>${esc(p.client)}</b><span class="due ${p.hot ? 'hot' : ''}">${esc(fmtDue(p))}</span></div>
+          <div class="proj-top"><b>${esc(p.client)}</b><span class="due ${p.hot ? 'hot' : ''}">${esc(p.status ? taskDue(p) : fmtDue(p))}</span></div>
           ${p.what ? `<span class="what">${esc(p.what)}</span>` : ''}
+          ${tag || flags ? `<div class="tags">${tag}${flags}</div>` : ''}
           ${p.pct !== null && p.pct !== undefined ? `<div class="bar" role="img" aria-label="Avancement ${Math.round(Number(p.pct))} %"><i style="width:${Math.max(0, Math.min(100, Number(p.pct)))}%"></i></div>` : ''}
-        </div>
-      </div>`).join('');
+        </div>`;
+      return p.link ? `<a class="proj" ${linkAttrs(p.link, 'studio')}>${inner}</a>` : `<div class="proj">${inner}</div>`;
+    }).join('');
+    const sum = sc ? [
+      sc.aujourdhui ? `<b>${sc.aujourdhui}</b> aujourd’hui` : '',
+      sc.en_cours ? `<b>${sc.en_cours}</b> en cours` : '',
+      sc.a_faire ? `<b>${sc.a_faire}</b> à faire` : '',
+      (sc.revue_klimb || 0) + (sc.revue_client || 0) ? `<b>${(sc.revue_klimb || 0) + (sc.revue_client || 0)}</b> en revue` : ''
+    ].filter(Boolean).join(' · ') : '';
     return `
       <section class="tile glass studio ${W(L)}" data-key="studio" ${L} aria-labelledby="t-studio">
         <div class="tile-head"><h2 id="t-studio">Studio KLIMB</h2><span class="head-actions"><button class="more" type="button" hidden>Tout voir</button><a class="open-link" href="${esc(d.studioUrl || 'https://studio.goklimb.com/')}" target="_blank" rel="noopener" aria-label="Ouvrir le Studio" title="Ouvrir le Studio">${GO}</a></span></div>
-        ${rows ? `<div class="timeline list fit">${rows}</div>` : '<p class="empty">Source Studio pas encore branchée.</p>'}
+        ${sum ? `<p class="studio-sum">${sum}</p>` : ''}
+        ${rows ? `<div class="timeline list fit">${rows}</div>` : `<p class="empty">${d.sources && d.sources.studio === 'ok' ? 'Aucune tâche active pour toi. Profite.' : 'Source Studio pas encore branchée.'}</p>`}
       </section>`;
   }
 
@@ -965,13 +999,14 @@
       <p class="panel-sub">${sc.url ? 'Lu directement par l’app à chaque ouverture' : 'Pas encore branché'}</p>
       <section aria-labelledby="h-studio">
         <h3 id="h-studio">API du Studio</h3>
-        <p>Colle l’adresse et la clé de l’API fournies par ton collègue. Elles restent sur cet appareil, elles ne passent ni par Claude ni par la base.</p>
+        <p>Colle l’adresse et la clé de l’API du Studio. La clé reste sur cet appareil et part uniquement dans l’en-tête de la requête.</p>
         <form class="add" data-form="studio">
-          <input type="url" name="url" required placeholder="https://…/api/…" value="${esc(sc.url || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Adresse de l’API Studio" ${dis}>
-          <input type="text" name="key" placeholder="Clé (si besoin)" value="${esc(sc.key || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Clé de l’API Studio" ${dis}>
+          <input type="url" name="url" required placeholder="${STUDIO_DEFAULT_URL}" value="${esc(sc.url || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Adresse de l’API Studio" ${dis}>
+          <input type="text" name="key" required placeholder="studio_…" value="${esc(sc.key || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Clé de l’API Studio" ${dis}>
+          <input type="email" name="member" placeholder="Ton email @goklimb.com" value="${esc(sc.member || studioMember())}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Ton email KLIMB" ${dis}>
           <button type="submit" class="btn" ${dis}>Enregistrer</button>
         </form>
-        <p class="hint">Format lu : une liste de projets (client, titre, échéance, avancement). Je l’ajusterai dès que l’API existe.</p>
+        <p class="hint">Tes tâches actives (hors idées) sont relues toutes les 3 minutes. Les urgentes, bloquées ou à rendre sous 2 jours passent en haut, et Claude en tient compte dans « L’essentiel ».</p>
       </section>
       ${lockNote()}
       <p class="panel-note" role="status">${esc(panelMsg)}</p>
@@ -1098,8 +1133,11 @@
     if (f.dataset.form === 'studio') {
       const url = f.elements.url.value.trim();
       const key = f.elements.key.value.trim();
+      const member = (f.elements.member ? f.elements.member.value.trim().toLowerCase() : '');
       if (!/^https:\/\/\S+$/.test(url)) { panelMsg = 'L’adresse doit commencer par https://'; return renderPanel(); }
-      store.set(STUDIO, JSON.stringify({ url, key }));
+      if (member && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(member)) { panelMsg = 'Email KLIMB invalide.'; return renderPanel(); }
+      store.set(STUDIO, JSON.stringify({ url, key, member }));
+      studioPushedAt = 0;
       panelMsg = '';
       toast('Studio enregistré.');
       await load();
@@ -1189,42 +1227,93 @@
 
   // Studio KLIMB : l'app lit directement l'API fournie par ton collègue
   function studioCfg() { try { return JSON.parse(store.get(STUDIO) || '{}') || {}; } catch { return {}; } }
+  const STUDIO_DEFAULT_URL = 'https://studio.goklimb.com/api/public/studio-tasks';
+  function studioMember() {
+    const sc = studioCfg();
+    if (sc.member) return sc.member;
+    const boxes = (cfg && Array.isArray(cfg.mailboxes)) ? cfg.mailboxes : [];
+    const k = boxes.find((b) => /@goklimb\.com$/i.test(b.address || ''));
+    return k ? k.address : '';
+  }
+  const ST_ORDER = { aujourdhui: 0, en_cours: 1, a_faire: 2, revue_klimb: 3, revue_client: 4, idees: 5 };
+  let studioCounts = null;
   async function loadStudio() {
     const sc = studioCfg();
     if (!sc.url) return null;
-    const headers = { Accept: 'application/json' };
-    if (sc.key) { headers.Authorization = `Bearer ${sc.key}`; headers['x-api-key'] = sc.key; }
+    const member = studioMember();
+    const url = new URL(sc.url);
+    if (member && !url.searchParams.has('member')) url.searchParams.set('member', member);
+    // La clé part uniquement dans l'en-tête x-api-key (jamais dans l'adresse)
+    const headers = sc.key ? { 'x-api-key': sc.key } : {};
     let r;
-    try { r = await fetch(sc.url, { headers, cache: 'no-store' }); } catch { throw { code: 'injoignable' }; }
-    if (!r.ok) throw { code: r.status === 401 || r.status === 403 ? 'clé refusée' : String(r.status) };
+    try { r = await fetch(url.toString(), { headers, cache: 'no-store' }); } catch { throw { code: 'injoignable' }; }
+    if (r.status === 401) throw { code: 'clé refusée' };
+    if (r.status === 404) throw { code: 'email inconnu du Studio' };
+    if (!r.ok) throw { code: String(r.status) };
     const j = await r.json();
+    let tasks = j.tasks;
+    if (!tasks && Array.isArray(j.members)) {
+      const me = j.members.find((m) => m.member === member) || j.members[0] || {};
+      tasks = me.tasks; j.counts = me.counts;
+    }
+    studioCounts = j.counts || null;
+    if (Array.isArray(tasks)) {
+      const today = new Date().toLocaleDateString('fr-CA', { timeZone: TZ });
+      const soon = new Date(Date.now() + 2 * 864e5).toLocaleDateString('fr-CA', { timeZone: TZ });
+      return tasks
+        .filter((t) => t.statut !== 'idees')
+        .map((t) => ({
+          id: t.id,
+          client: t.client || 'Interne',
+          what: t.titre || '',
+          status: t.statut || '',
+          due: t.echeance || null,
+          urgent: !!t.urgent,
+          blocked: !!t.bloquee,
+          link: t.lien || '',
+          hot: !!t.urgent || !!t.bloquee || (!!t.echeance && t.echeance <= soon && t.statut !== 'revue_client'),
+          late: !!t.echeance && t.echeance < today
+        }))
+        .sort((x, y) => (y.urgent - x.urgent) || (y.late - x.late) || ((ST_ORDER[x.status] ?? 9) - (ST_ORDER[y.status] ?? 9)) || String(x.due || '9999').localeCompare(String(y.due || '9999')))
+        .slice(0, 40);
+    }
+    // Ancien format générique (liste de projets)
     const arr = Array.isArray(j) ? j : (j.projects || j.data || j.items || []);
-    const soon = Date.now() + 7 * 864e5;
+    const soonT = Date.now() + 7 * 864e5;
     return arr.slice(0, 30).map((p) => {
       const due = p.due || p.dueDate || p.due_date || p.deadline || null;
-      const status = String(p.status || '').toLowerCase();
-      const done = !!(p.done || p.completed || /done|livr|termin|complete/.test(status));
-      const pct = p.pct ?? p.progress ?? p.percent ?? null;
       const t = due ? new Date(due).getTime() : NaN;
-      return {
-        client: p.client || p.clientName || p.client_name || p.company || p.name || 'Projet',
-        what: p.what || p.title || p.phase || (p.client || p.clientName ? p.name : '') || '',
-        due: due ? String(due).slice(0, 10) : null,
-        pct: pct === null || pct === undefined ? null : (Number(pct) <= 1 && Number(pct) > 0 && !String(pct).includes('%') ? Number(pct) * 100 : Number(pct)),
-        done,
-        hot: !done && !isNaN(t) && t <= soon
-      };
-    }).sort((x, y) => (x.done - y.done) || String(x.due || '9999').localeCompare(String(y.due || '9999')));
+      return { client: p.client || p.name || 'Projet', what: p.what || p.title || '', due: due ? String(due).slice(0, 10) : null, pct: p.pct ?? p.progress ?? null, done: !!p.done, hot: !p.done && !isNaN(t) && t <= soonT };
+    });
+  }
+
+  // Envoie un résumé des tâches à la base pour que Claude en tienne compte dans « L'essentiel »
+  let studioPushedAt = 0;
+  async function pushStudio(projects) {
+    if (!live() || !projects || Date.now() - studioPushedAt < 10 * 60 * 1000) return;
+    studioPushedAt = Date.now();
+    const tasks = projects.slice(0, 40).map(({ client, what, status, due, urgent, blocked, link }) => ({ client, titre: what, statut: status, echeance: due, urgent, bloquee: blocked, lien: link }));
+    try { await rpc('bento_put_studio', { p_key: accessKey, p_data: { generatedAt: new Date().toISOString(), counts: studioCounts, tasks } }); } catch {}
   }
 
   function merge(brief, projects, studioErr) {
     const d = { ...brief, sources: { ...(brief.sources || {}) }, counts: { ...(brief.counts || {}) }, errors: [...(brief.errors || [])] };
-    if (projects) { d.projects = projects; d.sources.studio = 'ok'; d.counts.studioHot = projects.filter((p) => p.hot).length; }
+    if (projects) { d.projects = projects; d.studioCounts = studioCounts; d.sources.studio = 'ok'; d.counts.studioHot = projects.filter((p) => p.hot).length; }
     else if (studioErr) { d.sources.studio = 'error'; d.errors.push(`Studio : ${studioErr}`); }
     return d;
   }
 
   let busy = false;
+  let lastRaw = null;
+  // Studio : rafraîchi toutes les 3 minutes (l'API est lue en direct par l'app)
+  async function refreshStudio() {
+    if (!live() || !lastRaw || !studioCfg().url || busy) return;
+    try {
+      const projects = await loadStudio();
+      if (projects) { pushStudio(projects); const d = merge(lastRaw, projects, null); render(d); }
+    } catch {}
+  }
+  setInterval(() => { if (document.visibilityState === 'visible') refreshStudio(); }, 3 * 60 * 1000);
   function note(msg) { $('errors').textContent = msg || ''; }
   async function load({ quiet = false } = {}) {
     if (!live() || busy) return;
@@ -1237,8 +1326,10 @@
       cfg = out.config || null;
       cfgReady = true;
       const projects = studio.status === 'fulfilled' ? studio.value : null;
+      if (projects) pushStudio(projects);
       const sErr = studio.status === 'rejected' ? (studio.reason.code || 'erreur') : null;
       if (out.brief) {
+        lastRaw = out.brief;
         const d = merge(out.brief, projects, sErr);
         const pending = ((cfg && cfg.mailboxes) || []).filter((b) => b.mode !== 'connected' && b.active !== false && (d.mailboxStatus || {})[b.address] === 'pending');
         if (pending.length) d.errors.push(`${pending.length > 1 ? `${pending.length} boîtes mail pas encore reliées` : `${pending[0].address} pas encore reliée`} (pastille Gmail)`);
@@ -1480,7 +1571,7 @@
   setInterval(() => { if (document.visibilityState === 'visible') loadWeather().then(renderWxPill); }, 15 * 60 * 1000);
 
   // ============ Mise à jour automatique : recharge quand une nouvelle version est publiée ============
-  const BUILD = '20261114183059';
+  const BUILD = '20261114200438';
   async function checkUpdate() {
     if (BUILD.startsWith('__') || !/^https:/.test(location.protocol)) return;
     if (!$('sheet').hidden || !$('onboard').hidden || !$('fb').hidden) return; // ne coupe rien en cours
