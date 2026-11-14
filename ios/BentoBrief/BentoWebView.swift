@@ -41,6 +41,7 @@ struct BentoWebView: UIViewRepresentable {
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = true
+        webView.allowsLinkPreview = false // l’appui long sert à « Important / Pas important », pas à l’aperçu des liens
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
