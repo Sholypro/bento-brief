@@ -25,7 +25,7 @@ final class BrowserState: ObservableObject {
     func openBrief() { open(BentoConfig.briefURL) }
 }
 
-/// La page Claude « Bento brief » dans une vue web plein écran
+/// La webapp Bento dans une vue web plein écran
 struct BentoWebView: UIViewRepresentable {
     @ObservedObject var state: BrowserState
 
@@ -33,7 +33,7 @@ struct BentoWebView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
-        config.websiteDataStore = .default() // garde ta connexion Claude d'un lancement à l'autre
+        config.websiteDataStore = .default() // garde ta clé d’accès Bento et le dernier brief d’un lancement à l’autre
         config.allowsInlineMediaPlayback = true
         config.applicationNameForUserAgent = BentoConfig.userAgentSuffix
 
@@ -53,7 +53,7 @@ struct BentoWebView: UIViewRepresentable {
         refresh.addTarget(context.coordinator, action: #selector(Coordinator.pulledToRefresh(_:)), for: .valueChanged)
         webView.scrollView.refreshControl = refresh
 
-        // Suit l'adresse affichée (claude.ai change de page sans recharger)
+        // Suit l’adresse affichée
         context.coordinator.urlObservation = webView.observe(\.url, options: [.new]) { [weak coordinator = context.coordinator] view, _ in
             DispatchQueue.main.async { coordinator?.updateLocation(of: view) }
         }

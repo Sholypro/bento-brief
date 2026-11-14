@@ -1,16 +1,17 @@
 # Bento pour iPhone et iPad (mode développeur, sans licence)
 
-Une vraie app iOS (SwiftUI) qui affiche ta page Claude « Bento brief » en plein écran. Elle s'installe depuis ton Mac avec Xcode et ton Apple ID gratuit : pas besoin du programme développeur Apple à 99 €.
+Une app iOS (SwiftUI) qui affiche la webapp Bento en plein écran : https://sholypro.github.io/bento-brief/
+
+> Plus simple encore : ouvre ce lien dans Safari puis Partager > Sur l'écran d'accueil. Même résultat, sans Xcode et sans expiration.
 
 Ce que fait l'app :
 
-- Ouvre directement ton brief. Le brief est écrit toutes les heures par ta tâche planifiée Claude, puis il se met à jour en direct.
-- Te garde connecté à Claude d'un lancement à l'autre.
+- Au premier lancement, elle te demande seulement ta **clé d'accès Bento**. Aucune connexion Claude, Google ou Slack.
+- Le brief vient de ta base Supabase, rempli toutes les heures en journée par ta tâche planifiée Claude.
 - Ouvre les liens Slack dans l'app Slack, et les liens Gmail et Studio dans Safari.
-- Tirer vers le bas recharge la page. Si tu reviens après plus de 10 minutes, l'app recharge toute seule.
-- Mise en page iPhone, iPad Pro 11 et 13 pouces, en portrait et en paysage.
+- Tirer vers le bas recharge. Chaque mise à jour poussée sur GitHub arrive sans repasser par Xcode.
 
-La limite du compte gratuit : l'app expire au bout de **7 jours**. Il suffit alors de rebrancher l'appareil et de relancer depuis Xcode (voir « Tous les 7 jours »). Ta connexion Claude est conservée.
+La limite du compte gratuit : l'app expire au bout de **7 jours**. Il suffit alors de rebrancher l'appareil et de relancer depuis Xcode. Ta clé d'accès est conservée.
 
 ## Fichiers
 
@@ -18,8 +19,8 @@ La limite du compte gratuit : l'app expire au bout de **7 jours**. Il suffit alo
 ios/Bento.xcodeproj                  le projet Xcode, prêt à ouvrir
 ios/BentoBrief/BentoBriefApp.swift   point d'entrée
 ios/BentoBrief/ContentView.swift     écran : fond, chargement, hors ligne, barre d'aide
-ios/BentoBrief/BentoWebView.swift    la vue web (connexion, liens, fenêtres de connexion)
-ios/BentoBrief/BentoConfig.swift     le lien de ta page Claude et les domaines autorisés
+ios/BentoBrief/BentoWebView.swift    la vue web (liens, rechargement)
+ios/BentoBrief/BentoConfig.swift     l'adresse de la webapp et les domaines autorisés
 ios/BentoBrief/Assets.xcassets       l'icône de l'app
 ```
 
@@ -65,12 +66,11 @@ En haut de Xcode, à côté du bouton ▶, choisis un **iPhone** ou un **iPad Pr
 2. Si Xcode dit que le développeur n'est pas approuvé : sur l'iPhone, **Réglages > Général > VPN et gestion de l'appareil** > ton Apple ID sous « App de développeur » > **Faire confiance**. Relance ▶.
 3. Bento s'ouvre sur l'iPhone, avec son icône sur l'écran d'accueil.
 
-### Première ouverture : se connecter à Claude
+### Première ouverture : ta clé d'accès
 
-- Connecte-toi comme sur le site claude.ai, avec le même compte que d'habitude.
-- **Google** : la fenêtre de connexion s'ouvre par-dessus l'app. Si Google refuse (« navigateur non sécurisé »), utilise l'e-mail à la place.
-- **E-mail** : Claude t'envoie un lien. Dans Mail, appuie longuement sur le lien > **Copier le lien**, reviens dans Bento et touche **Coller** dans la barre du bas.
-- Une fois connecté, touche **Mon brief** si tu n'es pas arrivé directement sur ton brief. Tu n'auras plus à te reconnecter.
+- Colle ta clé d'accès Bento (elle commence par `bento_`) puis **Ouvrir mon brief**.
+- L'API du Studio KLIMB est facultative : tu pourras l'ajouter plus tard depuis la pastille Studio.
+- C'est tout : l'app ne te redemandera rien.
 
 ## 8. Sur l'iPad Pro
 
@@ -97,6 +97,6 @@ Autres limites du compte gratuit : 3 apps de développement au maximum par appar
 - **Erreur de compilation dans Xcode** : fais une capture de l'erreur (le panneau rouge à gauche) et envoie-la à Claude.
 - **Déboguer la page** : l'app est inspectable. Sur le Mac, Safari > Réglages > Avancées > coche « Afficher les fonctionnalités pour les développeurs web », puis menu **Développement** > ton iPhone > Bento.
 
-## Changer de page
+## Changer d'adresse
 
-Le lien de la page est dans `BentoConfig.swift` (`briefURL`). Si tu recrées la page Claude un jour, colle le nouveau lien à cet endroit et relance ▶.
+L'adresse de la webapp est dans `BentoConfig.swift` (`briefURL`). Elle ne change que si le dépôt GitHub change de nom.

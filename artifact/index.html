@@ -6,6 +6,12 @@
 <title>Bento brief</title>
 <meta name="description" content="Ton brief Slack, Gmail et Studio KLIMB en quelques secondes">
 <meta name="theme-color" content="#8CC3E4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bento">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -266,15 +272,41 @@
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .errors { font-size: 14px; font-weight: 500; color: var(--hot); text-align: center; }
 
-  /* Écran code d'accès */
-  .gate { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 24px; background: rgba(20,32,26,0.25); }
-  .gate.open { display: flex; }
-  .gate form { width: min(380px, 100%); border-radius: 30px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
-  .gate h2 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 34px; }
-  .gate label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
-  .gate input { height: 48px; border-radius: 16px; border: 1px solid rgba(20,32,26,0.2); background: rgba(255,255,255,0.8); padding: 0 14px; font: 16px var(--sans); color: var(--ink); }
-  .gate button { height: 48px; border-radius: 24px; border: 0; background: var(--forest); color: var(--accent); font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
-  .gate .err { font-size: 13px; color: var(--hot); min-height: 18px; }
+  /* Premier lancement : clé d'accès et API Studio */
+  .onboard { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; padding: max(24px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom)); overflow: auto; background: rgba(20,32,26,0.18); }
+  .onboard[hidden] { display: none; }
+  body.onboarding .app { filter: blur(8px) saturate(1.1); pointer-events: none; }
+  .onboard .card { width: min(480px, 100%); margin: auto; border-radius: 34px; padding: 28px 24px 24px; display: flex; flex-direction: column; gap: 20px; --glass: rgba(252, 250, 238, 0.92); }
+  .onboard .eyebrow { align-self: flex-start; font-size: 13px; font-weight: 700; padding: 6px 13px; border-radius: 999px; background: var(--forest); color: var(--accent); }
+  .onboard h2 { margin: -4px 0 0; font-family: var(--serif); font-weight: 400; font-size: 44px; line-height: 1; letter-spacing: -0.01em; }
+  .onboard h2 em { font-style: italic; }
+  .onboard .lead { margin: 0; font-size: 16px; line-height: 1.5; color: var(--ink-2); }
+  .onboard .lead strong { color: var(--ink); }
+  .onboard .step { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
+  .onboard .num { width: 34px; height: 34px; border-radius: 17px; display: grid; place-items: center; background: var(--forest); color: var(--accent); font-weight: 700; font-size: 15px; }
+  .onboard .num.opt { background: rgba(20,32,26,0.08); color: var(--ink); }
+  .onboard .step b { display: flex; align-items: center; gap: 8px; font-size: 17px; margin: 6px 0 4px; }
+  .onboard .step b small { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: rgba(20,32,26,0.08); }
+  .onboard .step p { margin: 0 0 10px; font-size: 14px; line-height: 1.45; color: var(--ink-2); }
+  .onboard input { width: 100%; height: 50px; border-radius: 16px; border: 1px solid rgba(20,32,26,0.18); background: rgba(255,255,255,0.88); padding: 0 14px; font: 16px var(--sans); color: var(--ink); }
+  .onboard input + input { margin-top: 8px; }
+  .onboard input:focus { outline: 3px solid rgba(30,58,43,0.35); outline-offset: 0; border-color: var(--forest); }
+  .onboard .err { margin: 0; font-size: 14px; font-weight: 600; color: var(--hot); }
+  .onboard .err:empty { display: none; }
+  .onboard .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .onboard .actions .btn { flex: 1 1 160px; min-height: 52px; border-radius: 26px; font-size: 16px; }
+  .onboard .hint { margin: 0; }
+
+  /* Apprentissage : appui long sur un mail, un message ou un essentiel */
+  [data-fb] { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  .fb { position: fixed; z-index: 40; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(440px, calc(100% - 28px)); border-radius: 30px; padding: 18px; display: flex; flex-direction: column; gap: 10px; --glass: rgba(252, 250, 238, 0.97); box-shadow: 0 24px 70px rgba(20,32,26,0.28); }
+  .fb[hidden] { display: none; }
+  .fb h3 { margin: 0 4px; font-family: var(--serif); font-weight: 400; font-size: 26px; }
+  .fb .fb-what { margin: 0 4px 6px; font-size: 14px; line-height: 1.4; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .fb .fb-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fb .btn { min-height: 50px; }
+  .toast { position: fixed; z-index: 45; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none; max-width: calc(100% - 32px); padding: 12px 18px; border-radius: 999px; background: var(--forest); color: var(--accent); font-size: 15px; font-weight: 600; transition: opacity .2s, transform .2s; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
 
   /* Squelette de chargement */
   .skel { border-radius: 30px; min-height: 140px; }
@@ -436,6 +468,48 @@
   <div class="status" id="status"></div>
 </main>
 
+<div class="onboard" id="onboard" hidden>
+  <form class="card glass" id="onboardForm" novalidate aria-labelledby="obTitle">
+    <span class="eyebrow">Bento brief</span>
+    <h2 id="obTitle">Bienvenue <em>Sholy</em></h2>
+    <p class="lead">Claude lit ton <strong>Slack</strong> et tes <strong>deux boîtes Gmail</strong> toutes les heures en journée, trie ce qui compte et le dépose dans ta base. L’app n’a plus qu’à l’afficher.</p>
+    <div class="step">
+      <span class="num" aria-hidden="true">1</span>
+      <div>
+        <b>Ta clé d’accès</b>
+        <p>Elle relie l’app à ta base Bento. À coller une seule fois, elle reste sur cet appareil.</p>
+        <input id="obKey" type="text" inputmode="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="bento_…" aria-label="Clé d’accès Bento" required>
+      </div>
+    </div>
+    <div class="step">
+      <span class="num opt" aria-hidden="true">2</span>
+      <div>
+        <b>Studio KLIMB <small>Plus tard</small></b>
+        <p>Quand l’API du Studio est prête, colle son adresse et sa clé. Tu pourras aussi le faire depuis la pastille Studio.</p>
+        <input id="obStudioUrl" type="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://…/api/…" aria-label="Adresse de l’API Studio">
+        <input id="obStudioKey" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Clé de l’API (si besoin)" aria-label="Clé de l’API Studio">
+      </div>
+    </div>
+    <p class="err" id="obErr" role="alert"></p>
+    <div class="actions">
+      <button class="btn" type="submit" id="obGo">Ouvrir mon brief</button>
+      <button class="btn ghost" type="button" id="obDemo">Voir un exemple</button>
+    </div>
+    <p class="hint">Gmail et Slack restent branchés à Claude, pas à l’app : il n’y a rien d’autre à connecter ici.</p>
+  </form>
+</div>
+
+<div class="fb glass" id="fb" hidden role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+  <h3 id="fbTitle">Ça compte pour toi ?</h3>
+  <p class="fb-what" id="fbWhat"></p>
+  <div class="fb-btns">
+    <button class="btn" type="button" data-v="important">Important</button>
+    <button class="btn ghost" type="button" data-v="pas_important">Pas important</button>
+  </div>
+  <button class="btn ghost" type="button" data-v="cancel">Annuler</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 <div class="sheet-backdrop" id="sheet" hidden>
   <div class="sheet-wrap" role="dialog" aria-modal="true" aria-label="Détail">
     <button class="round glass sheet-close" id="sheetClose" type="button" aria-label="Fermer">
@@ -447,7 +521,6 @@
 
 <script>
 (() => {
-  const KEY = 'bento.key';
   const CACHE = 'bento.brief';
   const $ = (id) => document.getElementById(id);
   const store = {
@@ -511,7 +584,7 @@
     const [top, ...rest] = d.essentials || [];
     if (!top) return `<section class="tile brief"><div class="tile-head"><h2>L’essentiel</h2></div><p class="empty">Rien à signaler.</p></section>`;
     const restHtml = rest.map((e, i) => `
-      <a class="rest-item" ${linkAttrs(e.link, e.source)} aria-label="Ouvrir dans ${esc(SOURCE[e.source] || '')}">
+      <a class="rest-item" data-fb="ess:${i + 1}" ${linkAttrs(e.link, e.source)} aria-label="Ouvrir dans ${esc(SOURCE[e.source] || '')}">
         <span class="n" aria-hidden="true">${i + 2}</span>
         <span><p>${rich(e.text)}</p><span class="meta">${esc([SOURCE[e.source], fmtTime(e.time)].filter(Boolean).join(' · '))}</span></span>
       </a>`).join('');
@@ -520,7 +593,7 @@
       <section class="tile brief" data-key="brief" ${L} aria-labelledby="t-brief">
         <div class="tile-head"><h2 id="t-brief">L’essentiel</h2><span>Résumé IA · ${esc(fmtTime(d.generatedAt))}</span></div>
         <div class="fit">
-        <div class="top">
+        <div class="top" data-fb="ess:0">
           <span class="overline"><span class="prio">Priorité 1</span>${esc([SOURCE[top.source], fmtTime(top.time)].filter(Boolean).join(' · '))}</span>
           <p>${rich(top.text)}</p>
           ${top.action ? `<a class="cta" ${linkAttrs(top.link, top.source)}>${esc(top.action)} <span aria-hidden="true">→</span></a>` : ''}
@@ -551,8 +624,8 @@
 
   function renderMails(d, L = '') {
     const list = d.mails || [];
-    const rows = list.map((m) => `
-      <a class="row" ${linkAttrs(m.link, 'gmail')} title="Ouvrir le mail dans Gmail">
+    const rows = list.map((m, i) => `
+      <a class="row" data-fb="mail:${i}" ${linkAttrs(m.link, 'gmail')} title="Ouvrir le mail dans Gmail">
         <span class="avatar" aria-hidden="true" style="background:${avatarColor(m.from)}">${esc(initials(m.from))}</span>
         <span class="row-body">
           <span class="row-top"><b>${esc(m.from)}</b><span class="time">${m.account ? `<span class="acct ${m.account === 'klimb' ? 'klimb' : ''}">${esc(acctLabel(m.account))}</span>` : ''}${esc(fmtTime(m.time))}${GO}</span></span>
@@ -572,8 +645,8 @@
   function renderSlack(d, L = '') {
     const list = (d.slack || []).slice(0, 5);
     const waiting = list.filter((s) => s.awaitingReply).length;
-    const rows = list.map((s) => `
-      <a class="row" ${linkAttrs(s.link, 'slack')} title="Ouvrir le message dans Slack">
+    const rows = list.map((s, i) => `
+      <a class="row" data-fb="slack:${i}" ${linkAttrs(s.link, 'slack')} title="Ouvrir le message dans Slack">
         <span class="row-top">
           <span><b>${s.unread ? '<i class="udot" aria-label="Non lu"></i>' : ''}${esc(s.who)}</b> <span class="where">${esc(s.where === 'DM' ? 'en privé' : s.where === 'Groupe' ? 'en groupe' : s.where)}</span></span>
           <span class="time">${esc(fmtTime(s.time))}${GO}</span>
@@ -723,23 +796,30 @@
   }
 
   // ============ Panneaux de source : Gmail, Slack, Studio, IA ============
-  // Les réglages vivent dans la base de la page (document config/sources) ; la tâche planifiée les relit à chaque brief
+  // Les réglages vivent dans la base Supabase (table bento_config) ; la tâche planifiée les relit à chaque brief
   const CONNECTORS_URL = 'https://claude.ai/settings/connectors';
-  const SCHEDULE = 'En semaine, toutes les heures de 8h12 à 20h12';
+  const SCHEDULE = 'Toutes les heures de 8h à 19h, plus 6h et 21h. Pause de 22h à 6h.';
   const X = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
   let lastBrief = null;
   let openSrc = null;
   let cfg = null;
   let cfgReady = false;
-  let dbRef = null;
+  // Base Supabase remplie par la tâche planifiée Claude. La clé publique ne donne accès à rien sans la clé d'accès Bento.
+  const SB_URL = 'https://fhllwdwnrnqvgwoqyxnb.supabase.co';
+  const SB_KEY = 'sb_publishable_fvbtUkD5A7S2NoHXNriY8Q_iIIi8ri3';
+  const ACCESS = 'bento.access';
+  const STUDIO = 'bento.studio';
+  let accessKey = store.get(ACCESS) || '';
+  let demoMode = /[?&]demo\b/.test(location.search);
+  const live = () => !!accessKey && !demoMode;
   let saving = false;
   let panelMsg = '';
 
   const STATE = { ok: ['ok', 'Connecté'], reconnect: ['warn', 'À reconnecter'], error: ['warn', 'Erreur'], off: ['off', 'Pas branché'], demo: ['off', 'Exemple'] };
   const stateChip = (v) => { const [cls, txt] = STATE[v] || STATE.off; return `<span class="state ${cls}">${txt}</span>`; };
   const lastRun = (d) => (d && d.generatedAt && !d.demo ? `Dernière lecture ${/^\d/.test(fmtTime(d.generatedAt)) ? 'à ' : ''}${fmtTime(d.generatedAt)}` : 'Pas encore de lecture');
-  const canWrite = () => !!dbRef && cfgReady;
-  const lockNote = () => (dbRef ? '' : '<p class="hint">Aperçu : connecte-toi à claude.ai et ouvre ta page Bento brief pour modifier ces réglages.</p>');
+  const canWrite = () => live() && cfgReady;
+  const lockNote = () => (live() ? '' : '<p class="hint">Aperçu : ajoute ta clé d’accès (pastille IA) pour modifier ces réglages.</p>');
 
   function panelGmail(d) {
     const st = (d.sources || {}).gmail || 'off';
@@ -767,7 +847,7 @@
       ${st === 'reconnect' ? '<p class="panel-note">Gmail ne répond plus : reconnecte-le dans les connecteurs Claude.</p>' : ''}
       <section aria-labelledby="h-boxes">
         <h3 id="h-boxes">Boîtes suivies</h3>
-        ${rows ? `<ul class="accs">${rows}</ul>` : `<p>${cfgReady || !dbRef ? 'Aucune boîte enregistrée.' : 'Chargement…'}</p>`}
+        ${rows ? `<ul class="accs">${rows}</ul>` : `<p>${cfgReady || !live() ? 'Aucune boîte enregistrée.' : 'Chargement…'}</p>`}
         <form class="add" data-form="mailbox">
           <input type="email" name="address" required placeholder="nom@domaine.com" autocomplete="off" aria-label="Adresse de la boîte" ${dis}>
           <input type="text" name="label" required maxlength="20" placeholder="Étiquette (Freelance…)" autocomplete="off" aria-label="Étiquette" ${dis}>
@@ -817,11 +897,25 @@
 
   function panelStudio(d) {
     const st = (d.sources || {}).studio || 'off';
+    const sc = studioCfg();
+    const dis = live() ? '' : 'disabled';
     return `
       <div class="tile-head"><h2 id="t-panel">Studio KLIMB ${stateChip(st)}</h2></div>
-      <p class="panel-sub">${st === 'off' ? 'Pas encore branché au brief' : esc(lastRun(d))}</p>
-      <section><p>Le Studio n'a pas encore de connecteur accessible depuis la tâche planifiée. Dès qu'il en a un, ce bloc affichera tes projets et les deadlines des 7 prochains jours.</p></section>
+      <p class="panel-sub">${sc.url ? 'Lu directement par l’app à chaque ouverture' : 'Pas encore branché'}</p>
+      <section aria-labelledby="h-studio">
+        <h3 id="h-studio">API du Studio</h3>
+        <p>Colle l’adresse et la clé de l’API fournies par ton collègue. Elles restent sur cet appareil, elles ne passent ni par Claude ni par la base.</p>
+        <form class="add" data-form="studio">
+          <input type="url" name="url" required placeholder="https://…/api/…" value="${esc(sc.url || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Adresse de l’API Studio" ${dis}>
+          <input type="text" name="key" placeholder="Clé (si besoin)" value="${esc(sc.key || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Clé de l’API Studio" ${dis}>
+          <button type="submit" class="btn" ${dis}>Enregistrer</button>
+        </form>
+        <p class="hint">Format lu : une liste de projets (client, titre, échéance, avancement). Je l’ajusterai dès que l’API existe.</p>
+      </section>
+      ${lockNote()}
+      <p class="panel-note" role="status">${esc(panelMsg)}</p>
       <div class="panel-actions">
+        ${sc.url ? `<button type="button" class="btn ghost" data-act="studio-clear">Débrancher</button>` : ''}
         <a class="btn" href="${esc(d.studioUrl || 'https://studio.goklimb.com/')}" target="_blank" rel="noopener">Ouvrir le Studio</a>
       </div>`;
   }
@@ -832,7 +926,7 @@
       <div class="tile-head"><h2 id="t-panel">IA ${stateChip(st)}</h2></div>
       <p class="panel-sub">${esc(lastRun(d))}</p>
       <dl class="facts">
-        <div><dt>Qui trie</dt><dd>Claude, via ta tâche planifiée « Bento brief »</dd></div>
+        <div><dt>Qui trie</dt><dd>Claude, via ta tâche planifiée « Bento brief », qui dépose le résultat dans ta base</dd></div>
         <div><dt>Quand</dt><dd>${esc(SCHEDULE)}</dd></div>
         <div><dt>Accès</dt><dd>Lecture seule, rien n'est envoyé ni marqué lu</dd></div>
         <div><dt>Sources lues</dt><dd>${['gmail', 'slack', 'studio'].filter((k) => ((d.sources || {})[k]) === 'ok').map((k) => SOURCE[k]).join(', ') || 'Aucune'}</dd></div>
@@ -846,8 +940,13 @@
         </ul>
         <p class="hint">Newsletters, notifications automatiques et pubs ne remontent jamais.</p>
       </section>
+      <section>
+        <h3>Apprends-lui ce qui compte</h3>
+        <p>Appui long sur un mail, un message Slack ou un essentiel, puis « Important » ou « Pas important ». Claude relit tes choix à chaque tri et s’y adapte.</p>
+      </section>
       <div class="panel-actions">
         <button type="button" class="btn ghost" data-act="goto" data-src="gmail">Régler les boîtes mail</button>
+        <button type="button" class="btn ghost" data-act="set-key">${live() ? 'Changer de clé d’accès' : 'Ajouter ma clé d’accès'}</button>
       </div>`;
   }
 
@@ -873,7 +972,9 @@
     saving = true;
     panelMsg = '';
     try {
-      await dbRef.doc('config/sources').set({ ...next, updatedAt: new Date().toISOString() });
+      const payload = { ...next, updatedAt: new Date().toISOString() };
+      cfg = await rpc('bento_save_config', { p_key: accessKey, p_config: payload });
+      renderPanel();
       return true;
     } catch (e) {
       panelMsg = 'Impossible d’enregistrer (' + (e.code || 'erreur') + ').';
@@ -890,6 +991,8 @@
     const i = Number(b.dataset.i);
     const next = baseCfg();
     if (b.dataset.act === 'goto') return openSource(b.dataset.src);
+    if (b.dataset.act === 'set-key') { closeSheet(); return askKey(); }
+    if (b.dataset.act === 'studio-clear') { store.set(STUDIO, '{}'); toast('Studio débranché.'); renderPanel(); return load(); }
     if (b.dataset.act === 'remove') next.mailboxes.splice(i, 1);
     else if (b.dataset.act === 'vip-remove') next.vipSenders.splice(i, 1);
     else return;
@@ -907,6 +1010,16 @@
     const f = e.target.closest('form[data-form]');
     if (!f) return;
     e.preventDefault();
+    if (f.dataset.form === 'studio') {
+      const url = f.elements.url.value.trim();
+      const key = f.elements.key.value.trim();
+      if (!/^https:\/\/\S+$/.test(url)) { panelMsg = 'L’adresse doit commencer par https://'; return renderPanel(); }
+      store.set(STUDIO, JSON.stringify({ url, key }));
+      panelMsg = '';
+      toast('Studio enregistré.');
+      await load();
+      return renderPanel();
+    }
     const next = baseCfg();
     if (f.dataset.form === 'mailbox') {
       const address = f.elements.address.value.trim().toLowerCase();
@@ -973,55 +1086,187 @@
     };
   }
 
-  const useCap = (n) => (window.claude && typeof window.claude.use === 'function') ? window.claude.use(n) : Promise.resolve(null);
-
-  // Le brief est écrit toutes les heures par Claude dans la base de la page (document brief/latest)
-  let stop = null;
-  let gotLive = false;
-  function note(msg) { $('errors').textContent = msg || ''; }
-
-  async function connect() {
-    document.body.classList.add('loading');
-    const timer = setTimeout(() => { if (!gotLive) note('Le dernier brief ne répond pas encore, affichage de la dernière version connue.'); }, 10000);
-    const db = await useCap('db');
-    if (!db) {
-      clearTimeout(timer);
-      document.body.classList.remove('loading');
-      note('Connecte-toi à claude.ai pour voir ton brief.');
-      return;
+  // ============ Lecture de la base ============
+  async function rpc(fn, args) {
+    const headers = { apikey: SB_KEY, 'Content-Type': 'application/json' };
+    let r;
+    try { r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers, body: JSON.stringify(args), cache: 'no-store' }); }
+    catch { throw { code: 'hors ligne' }; }
+    if (!r.ok) {
+      let msg = '';
+      try { msg = (await r.json()).message || ''; } catch {}
+      throw { code: (r.status === 401 || r.status === 403 || /clé invalide/.test(msg)) ? 'clé' : String(r.status), message: msg };
     }
-    dbRef = db;
-    db.doc('config/sources').onSnapshot((snap) => {
-      if (snap.metadata.fromCache && !snap.exists) return;
-      cfg = snap.exists ? snap.data() : null;
-      cfgReady = true;
-      if (openSrc) renderPanel();
-    }, () => { cfgReady = false; if (openSrc) renderPanel(); });
-    if (stop) stop();
-    stop = db.doc('brief/latest').onSnapshot((snap) => {
-      if (!snap.metadata.fromCache) { gotLive = true; clearTimeout(timer); document.body.classList.remove('loading'); }
-      const data = snap.exists ? snap.data() : null;
-      if (data) { render(data); if (!snap.metadata.fromCache) note((data.errors || []).join(' · ')); }
-      else if (!snap.metadata.fromCache) render(demoBrief());
-    }, (err) => {
-      clearTimeout(timer);
-      document.body.classList.remove('loading');
-      note('Impossible de lire le brief (' + err.code + ').');
-    });
+    const t = await r.text();
+    return t ? JSON.parse(t) : null;
   }
 
-  $('refresh').addEventListener('click', async () => {
-    const db = await useCap('db');
-    if (!db) return;
-    document.body.classList.add('loading');
-    try { const snap = await db.doc('brief/latest').get(); if (snap.exists) render(snap.data()); }
-    catch (e) { note('Impossible d’actualiser (' + (e.code || 'erreur') + ').'); }
-    finally { document.body.classList.remove('loading'); }
-  });
+  // Studio KLIMB : l'app lit directement l'API fournie par ton collègue
+  function studioCfg() { try { return JSON.parse(store.get(STUDIO) || '{}') || {}; } catch { return {}; } }
+  async function loadStudio() {
+    const sc = studioCfg();
+    if (!sc.url) return null;
+    const headers = { Accept: 'application/json' };
+    if (sc.key) { headers.Authorization = `Bearer ${sc.key}`; headers['x-api-key'] = sc.key; }
+    let r;
+    try { r = await fetch(sc.url, { headers, cache: 'no-store' }); } catch { throw { code: 'injoignable' }; }
+    if (!r.ok) throw { code: r.status === 401 || r.status === 403 ? 'clé refusée' : String(r.status) };
+    const j = await r.json();
+    const arr = Array.isArray(j) ? j : (j.projects || j.data || j.items || []);
+    const soon = Date.now() + 7 * 864e5;
+    return arr.slice(0, 30).map((p) => {
+      const due = p.due || p.dueDate || p.due_date || p.deadline || null;
+      const status = String(p.status || '').toLowerCase();
+      const done = !!(p.done || p.completed || /done|livr|termin|complete/.test(status));
+      const pct = p.pct ?? p.progress ?? p.percent ?? null;
+      const t = due ? new Date(due).getTime() : NaN;
+      return {
+        client: p.client || p.clientName || p.client_name || p.company || p.name || 'Projet',
+        what: p.what || p.title || p.phase || (p.client || p.clientName ? p.name : '') || '',
+        due: due ? String(due).slice(0, 10) : null,
+        pct: pct === null || pct === undefined ? null : (Number(pct) <= 1 && Number(pct) > 0 && !String(pct).includes('%') ? Number(pct) * 100 : Number(pct)),
+        done,
+        hot: !done && !isNaN(t) && t <= soon
+      };
+    }).sort((x, y) => (x.done - y.done) || String(x.due || '9999').localeCompare(String(y.due || '9999')));
+  }
 
+  function merge(brief, projects, studioErr) {
+    const d = { ...brief, sources: { ...(brief.sources || {}) }, counts: { ...(brief.counts || {}) }, errors: [...(brief.errors || [])] };
+    if (projects) { d.projects = projects; d.sources.studio = 'ok'; d.counts.studioHot = projects.filter((p) => p.hot).length; }
+    else if (studioErr) { d.sources.studio = 'error'; d.errors.push(`Studio : ${studioErr}`); }
+    return d;
+  }
+
+  let busy = false;
+  function note(msg) { $('errors').textContent = msg || ''; }
+  async function load({ quiet = false } = {}) {
+    if (!live() || busy) return;
+    busy = true;
+    document.body.classList.add('loading');
+    try {
+      const [res, studio] = await Promise.allSettled([rpc('bento_get', { p_key: accessKey }), loadStudio()]);
+      if (res.status === 'rejected') throw res.reason;
+      const out = res.value || {};
+      cfg = out.config || null;
+      cfgReady = true;
+      const projects = studio.status === 'fulfilled' ? studio.value : null;
+      const sErr = studio.status === 'rejected' ? (studio.reason.code || 'erreur') : null;
+      if (out.brief) {
+        const d = merge(out.brief, projects, sErr);
+        store.set(CACHE, JSON.stringify(d));
+        render(d);
+        note(d.errors.join(' · '));
+      } else {
+        render({ ...demoBrief(), headline: 'Ta base est prête. Le premier brief arrive au prochain passage de Claude.' });
+      }
+    } catch (e) {
+      if (e.code === 'clé') return askKey('Cette clé d’accès n’est plus valide.');
+      if (!quiet) note(e.code === 'hors ligne' ? 'Hors ligne : dernier brief gardé sur l’appareil.' : `Impossible de lire le brief (${e.code}).`);
+    } finally {
+      busy = false;
+      document.body.classList.remove('loading');
+    }
+  }
+
+  // ============ Premier lancement ============
+  function askKey(err) {
+    const sc = studioCfg();
+    $('obKey').value = accessKey;
+    $('obStudioUrl').value = sc.url || '';
+    $('obStudioKey').value = sc.key || '';
+    $('obErr').textContent = err || '';
+    $('onboard').hidden = false;
+    document.body.classList.add('onboarding');
+    setTimeout(() => $('obKey').focus(), 60);
+  }
+  function closeOnboard() { $('onboard').hidden = true; document.body.classList.remove('onboarding'); }
+  $('onboardForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const key = $('obKey').value.trim();
+    const url = $('obStudioUrl').value.trim();
+    const sk = $('obStudioKey').value.trim();
+    if (!/^bento_[a-f0-9]{24,}$/i.test(key)) { $('obErr').textContent = 'La clé commence par bento_ suivi de lettres et de chiffres.'; return; }
+    if (url && !/^https:\/\/\S+$/.test(url)) { $('obErr').textContent = 'L’adresse du Studio doit commencer par https://'; return; }
+    $('obGo').disabled = true;
+    $('obErr').textContent = '';
+    try {
+      await rpc('bento_get', { p_key: key });
+      accessKey = key;
+      store.set(ACCESS, key);
+      store.set(STUDIO, JSON.stringify(url ? { url, key: sk } : {}));
+      demoMode = false;
+      closeOnboard();
+      await load();
+    } catch (er) {
+      $('obErr').textContent = er.code === 'clé' ? 'Clé inconnue. Vérifie-la et réessaie.' : `Connexion impossible (${er.code}). Vérifie ton réseau.`;
+    } finally { $('obGo').disabled = false; }
+  });
+  $('obDemo').addEventListener('click', () => { demoMode = true; closeOnboard(); render(demoBrief()); note(''); });
+
+  // ============ Apprentissage : appui long ============
+  let toastT = null;
+  function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2600); }
+  function fbItem(ref) {
+    const [kind, i] = String(ref).split(':');
+    const d = lastBrief || {};
+    const n = Number(i);
+    if (kind === 'mail') { const m = (d.mails || [])[n]; return m && { kind: 'mail', label: `${m.from} · ${m.subject}`, item: { from: m.from, subject: m.subject, account: m.account, why: m.why, tag: m.tag, link: m.link } }; }
+    if (kind === 'slack') { const x = (d.slack || [])[n]; return x && { kind: 'slack', label: `${x.who} · ${x.text}`, item: { who: x.who, where: x.where, text: String(x.text || '').slice(0, 400), link: x.link } }; }
+    if (kind === 'ess') { const x = (d.essentials || [])[n]; return x && { kind: 'essentiel', label: String(x.text || '').replace(/\*\*/g, ''), item: { text: x.text, source: x.source, link: x.link } }; }
+    return null;
+  }
+  let fbCur = null;
+  let fbFocus = null;
+  function openFeedback(el) {
+    if (!live()) { toast('Ajoute ta clé d’accès pour apprendre à Bento ce qui compte.'); return; }
+    const f = fbItem(el.dataset.fb);
+    if (!f) return;
+    fbCur = f;
+    fbFocus = document.activeElement;
+    $('fbWhat').textContent = f.label;
+    $('fb').hidden = false;
+    $('fb').querySelector('[data-v="important"]').focus();
+  }
+  function closeFeedback() { $('fb').hidden = true; fbCur = null; if (fbFocus && fbFocus.focus) fbFocus.focus(); }
+  $('fb').addEventListener('click', async (e) => {
+    const b = e.target.closest('button[data-v]');
+    if (!b) return;
+    const v = b.dataset.v;
+    const f = fbCur;
+    closeFeedback();
+    if (v === 'cancel' || !f) return;
+    try {
+      await rpc('bento_feedback', { p_key: accessKey, p_kind: f.kind, p_item: f.item, p_verdict: v });
+      toast(v === 'important' ? 'Noté : ce genre de message remontera.' : 'Noté : je le laisserai de côté.');
+    } catch (er) { toast(`Pas enregistré (${er.code}).`); }
+  });
+  let lp = null;
+  let lpFired = false;
+  const cancelLp = () => { if (lp) { clearTimeout(lp.t); lp = null; } };
+  document.addEventListener('pointerdown', (e) => {
+    const el = e.target.closest('[data-fb]');
+    if (!el || e.button > 0) return;
+    lpFired = false;
+    lp = { x: e.clientX, y: e.clientY, t: setTimeout(() => { lpFired = true; lp = null; if (navigator.vibrate) navigator.vibrate(12); openFeedback(el); }, 480) };
+  });
+  document.addEventListener('pointermove', (e) => { if (lp && Math.hypot(e.clientX - lp.x, e.clientY - lp.y) > 10) cancelLp(); }, { passive: true });
+  document.addEventListener('pointerup', cancelLp);
+  document.addEventListener('pointercancel', cancelLp);
+  document.addEventListener('click', (e) => { if (lpFired) { lpFired = false; e.preventDefault(); e.stopPropagation(); } }, true);
+  document.addEventListener('contextmenu', (e) => { const el = e.target.closest('[data-fb]'); if (el) { e.preventDefault(); cancelLp(); if (!lpFired) openFeedback(el); lpFired = false; } });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('fb').hidden) closeFeedback(); });
+
+  // ============ Démarrage ============
+  $('refresh').addEventListener('click', () => (live() ? load() : askKey()));
   setHeader(null);
-  render(demoBrief());
-  connect();
+  const cached = (() => { try { return JSON.parse(store.get(CACHE) || 'null'); } catch { return null; } })();
+  if (demoMode) render(demoBrief());
+  else if (!accessKey) { render(demoBrief()); askKey(); }
+  else { render(cached && !cached.demo ? cached : demoBrief()); load(); }
+  setInterval(() => { if (document.visibilityState === 'visible') load({ quiet: true }); }, 5 * 60 * 1000);
+  if ('serviceWorker' in navigator && location.protocol === 'https:' && /github\.io$/.test(location.hostname)) navigator.serviceWorker.register('sw.js').catch(() => {});
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') load({ quiet: true }); });
 })();
 </script>
 </body>

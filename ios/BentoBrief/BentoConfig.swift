@@ -1,21 +1,18 @@
 import Foundation
 import UIKit
 
-/// Réglages de l'app Bento. Le seul à changer un jour : le lien de ta page Claude.
+/// Réglages de l'app Bento.
+/// L'app affiche la webapp Bento (GitHub Pages), qui lit ta base Supabase remplie par la tâche planifiée Claude.
+/// Aucune connexion Claude, Google ou Slack dans l'app : seulement ta clé d'accès Bento, collée une fois au premier lancement.
 enum BentoConfig {
-    /// Ta page Claude « Bento brief » (le brief y est écrit toutes les heures par ta tâche planifiée)
-    static let briefURL = URL(string: "https://claude.ai/artifact/HRzsoECnxh1LCaQRmAiv68")!
+    /// La webapp Bento : chaque mise à jour poussée sur GitHub arrive dans l'app sans repasser par Xcode
+    static let briefURL = URL(string: "https://sholypro.github.io/bento-brief/")!
 
-    /// Sites qui restent dans l'app : Claude et les pages de connexion.
-    /// Tout le reste (Slack, Gmail, Studio…) s'ouvre dans son app ou dans Safari.
-    static let inAppDomains = [
-        "claude.ai", "anthropic.com", "claudeusercontent.com",
-        "google.com", "gstatic.com", "googleusercontent.com",
-        "apple.com", "icloud.com"
-    ]
+    /// Sites qui restent dans l'app. Tout le reste (Slack, Gmail, Studio…) s'ouvre dans son app ou dans Safari.
+    static let inAppDomains = ["sholypro.github.io"]
 
-    /// Fenêtres de connexion qui s'ouvrent dans une feuille par-dessus l'app (et partagent la session)
-    static let loginPopupHosts = ["accounts.google.com", "appleid.apple.com", "claude.ai"]
+    /// Plus de fenêtre de connexion : l'app ne se connecte à aucun compte
+    static let loginPopupHosts: [String] = []
 
     /// Ajouté à l'identifiant du navigateur pour que Google accepte la connexion dans l'app
     static var userAgentSuffix: String {
@@ -39,12 +36,8 @@ enum BentoConfig {
     }
 
     static func isBrief(_ url: URL) -> Bool {
-        url.host?.lowercased() == briefURL.host && url.path == briefURL.path
+        url.host?.lowercased() == briefURL.host && url.path.hasPrefix(briefURL.path)
     }
 
-    static func isLoginPage(_ url: URL) -> Bool {
-        let host = url.host?.lowercased() ?? ""
-        if host == "accounts.google.com" || host == "appleid.apple.com" { return true }
-        return host == "claude.ai" && (url.path.hasPrefix("/login") || url.path.hasPrefix("/magic-link"))
-    }
+    static func isLoginPage(_ url: URL) -> Bool { false }
 }
