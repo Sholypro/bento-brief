@@ -919,17 +919,21 @@
     const vip = (cfg && Array.isArray(cfg.vipSenders)) ? cfg.vipSenders : [];
     const main = (boxes.find((b) => b.mode === 'connected') || {}).address || 'ta boîte connectée';
     const dis = canWrite() ? '' : 'disabled';
-    const mst = d.mailboxStatus || {};
     const rows = boxes.map((b, i) => {
       const on = b.active !== false;
       const slug = String(b.label || '').toLowerCase();
-      const ms = b.mode === 'connected' ? 'ok' : (mst[b.address] || 'unknown');
-      const stTxt = b.mode === 'connected' ? 'Lue par Claude' : { ok: 'Reliée, Claude reçoit ses mails', pending: 'Pas encore reliée : aucun mail reçu', unknown: 'Vérification au prochain brief' }[ms];
+      const acc = b.mode === 'connected' ? null : googleAccounts.find((a) => a.email === String(b.address).toLowerCase());
+      const ms = b.mode === 'connected' ? 'ok' : !acc ? 'pending' : acc.status === 'ok' ? 'ok' : 'pending';
+      const when = acc && acc.lastSyncAt ? new Date(acc.lastSyncAt).toLocaleTimeString('fr-FR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }) : '';
+      const stTxt = b.mode === 'connected' ? 'Lue par Claude (connecteur)'
+        : !acc ? 'Pas encore connectée'
+        : acc.status === 'ok' ? `Connectée · ${plural(acc.unread ?? 0, 'non lu')}${when ? ` · relue à ${when}` : ''}`
+        : acc.status === 'reconnect' ? 'Accès expiré : reconnecte-la' : 'Erreur de lecture, réessaie';
       return `
       <li class="acc ${on ? '' : 'paused'}">
         <span class="avatar" aria-hidden="true" style="background:${avatarColor(b.address)}">${esc(initials(b.label || b.address))}</span>
         <span class="acc-body"><b>${esc(b.address)}</b><span class="box-st ${ms}">${esc(stTxt)}${on ? '' : ' · en pause'}</span></span>
-        ${b.mode !== 'connected' && ms !== 'ok' ? `<button type="button" class="btn small" data-act="link" data-i="${i}">Relier</button>` : ''}
+        ${b.mode !== 'connected' && ms !== 'ok' ? `<button type="button" class="btn small" data-act="google" data-i="${i}" ${dis}>${acc ? 'Reconnecter' : 'Connecter'}</button>` : ''}
         ${b.label ? `<span class="acct ${slug === 'klimb' ? 'klimb' : ''}">${esc(b.label)}</span>` : ''}
         ${b.mode === 'connected' ? '' : `
           <label class="switch" title="${on ? 'Mettre en pause' : 'Reprendre'}"><input type="checkbox" data-act="toggle" data-i="${i}" ${on ? 'checked' : ''} ${dis}><i></i><span class="sr">Suivre ${esc(b.address)}</span></label>
@@ -945,10 +949,11 @@
         ${rows ? `<ul class="accs">${rows}</ul>` : `<p>${cfgReady || !live() ? 'Aucune boîte enregistrée.' : 'Chargement…'}</p>`}
         <form class="add" data-form="mailbox">
           <input type="email" name="address" required placeholder="nom@domaine.com" autocomplete="off" aria-label="Adresse de la boîte" ${dis}>
-          <input type="text" name="label" required maxlength="20" placeholder="Étiquette (Freelance…)" autocomplete="off" aria-label="Étiquette" ${dis}>
-          <button type="submit" class="btn" ${dis}>Ajouter</button>
+          <input type="text" name="label" required maxlength="20" placeholder="Étiquette (Principal, KLIMB…)" autocomplete="off" aria-label="Étiquette" ${dis}>
+          <button type="submit" class="btn" ${dis}>Connecter avec Google</button>
         </form>
-        <p class="hint">Claude ne lit qu’une boîte : <b>${esc(main)}</b>. Une boîte ajoutée doit lui transférer ses mails, sinon elle reste vide. Le bouton « Relier » te guide (2 minutes, une seule fois).</p>
+        ${googleReady === false ? '<p class="panel-note">La connexion Google n’est pas encore activée sur ta base : il manque l’identifiant Google (étape à faire une seule fois).</p>' : ''}
+        <p class="hint">Chaque boîte se connecte une fois avec Google, en lecture seule. Rien n’est transféré : Bento relit ses non lus toutes les 20 minutes et Claude les trie avec le reste.</p>
       </section>
       <section aria-labelledby="h-vip">
         <h3 id="h-vip">Toujours importants</h3>
@@ -1046,33 +1051,31 @@
       </div>`;
   }
 
-  let linkBox = null;
-  function panelLink(d) {
-    const boxes = (cfg && Array.isArray(cfg.mailboxes)) ? cfg.mailboxes : [];
-    const main = (boxes.find((b) => b.mode === 'connected') || {}).address || 'ta boîte connectée';
-    const addr = linkBox || '';
-    const ms = (d.mailboxStatus || {})[addr] || 'unknown';
-    const workspace = !/@(gmail|googlemail)\.com$/i.test(addr);
-    const enc = encodeURIComponent;
-    return `
-      <div class="tile-head"><h2 id="t-panel">Relier une boîte</h2></div>
-      <p class="panel-sub"><b>${esc(addr)}</b> · ${ms === 'ok' ? 'déjà reliée' : ms === 'pending' ? 'pas encore reliée' : 'à vérifier'}</p>
-      <section><p>Claude lit une seule boîte, <b>${esc(main)}</b>. Pour qu’il voie aussi <b>${esc(addr)}</b>, cette boîte lui transfère une copie de chaque nouveau mail. Tes mails restent aussi dans la boîte d’origine.</p></section>
-      <ol class="steps">
-        <li><div><b>Ouvre les réglages de transfert</b><span>Sur le compte <code>${esc(addr)}</code>, rubrique « Transfert et POP/IMAP ». Si Gmail ouvre le mauvais compte, change de compte avec ta photo en haut à droite.</span><a class="btn small" href="https://mail.google.com/mail/u/?authuser=${enc(addr)}#settings/fwdandpop" target="_blank" rel="noopener">Ouvrir les réglages</a></div></li>
-        <li><div><b>Ajoute l’adresse de transfert</b><span>« Ajouter une adresse de transfert », saisis <code>${esc(main)}</code>, puis Suivant, Continuer et OK.</span></div></li>
-        <li><div><b>Valide avec le code</b><span>Google envoie un code à <code>${esc(main)}</code> (expéditeur forwarding-noreply@google.com). Copie-le, reviens dans les réglages et colle-le dans « Valider ».</span><a class="btn small ghost" href="https://mail.google.com/mail/u/?authuser=${enc(main)}#search/from%3Aforwarding-noreply%40google.com" target="_blank" rel="noopener">Trouver le mail du code</a></div></li>
-        <li><div><b>Active le transfert</b><span>Coche « Transférer une copie des messages entrants à ${esc(main)} », garde « conserver la copie de Gmail dans la boîte de réception », puis « Enregistrer les modifications » en bas de page.</span></div></li>
-      </ol>
-      ${workspace ? '<p class="hint">Boîte professionnelle : si l’option de transfert est grisée ou refusée, l’administrateur de ton entreprise l’a bloquée. Il faut lui demander de l’autoriser.</p>' : ''}
-      <p class="hint">Seuls les nouveaux mails sont transférés, pas ceux déjà reçus. La boîte passe en vert au premier brief qui reçoit un de ses mails.</p>
-      <div class="panel-actions"><button type="button" class="btn ghost" data-act="goto" data-src="gmail">Retour aux boîtes</button></div>`;
+  // Comptes Google reliés à l'app (lus dans la base, sans jamais voir les jetons)
+  let googleAccounts = [];
+  let googleReady = null;
+  const FN_URL = `${SB_URL}/functions/v1/bento-google`;
+  async function checkGoogle() {
+    if (googleReady !== null) return;
+    try { const r = await fetch(`${FN_URL}/status`, { cache: 'no-store' }); const j = await r.json(); googleReady = !!j.configured; } catch { googleReady = null; }
+    if (openSrc === 'gmail') renderPanel();
+  }
+  async function connectGoogle(address, label) {
+    if (!live()) return toast('Ajoute ta clé d’accès d’abord.');
+    try {
+      const r = await fetch(`${FN_URL}/start`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: accessKey, hint: address || '', label: label || '' }) });
+      const j = await r.json().catch(() => ({}));
+      if (r.status === 503) { googleReady = false; renderPanel(); return toast('Connexion Google pas encore activée.'); }
+      if (!r.ok || !j.url) return toast(`Connexion impossible (${j.error || r.status}).`);
+      toast('Connexion Google en cours…');
+      location.href = j.url; // Google refuse les vues intégrées : la page s'ouvre dans Safari, puis reviens dans Bento
+    } catch { toast('Connexion impossible : vérifie ton réseau.'); }
   }
 
   function renderPanel() {
     if (!openSrc) return;
     const d = lastBrief || {};
-    const html = { gmail: panelGmail, slack: panelSlack, studio: panelStudio, ai: panelAI, link: panelLink }[openSrc](d);
+    const html = { gmail: panelGmail, slack: panelSlack, studio: panelStudio, ai: panelAI }[openSrc](d);
     const body = $('sheetBody');
     const prev = body.querySelector('.panel');
     // Garde ce qui est en cours de saisie quand la base se met à jour
@@ -1084,7 +1087,7 @@
     if (drafts) [...sec.querySelectorAll('form input')].forEach((i, n) => { if (drafts[n]) i.value = drafts[n]; });
     showSheet(sec);
   }
-  function openSource(k) { wxOpen = false; openSrc = k; panelMsg = ''; renderPanel(); }
+  function openSource(k) { wxOpen = false; openSrc = k; panelMsg = ''; renderPanel(); if (k === 'gmail') checkGoogle(); }
 
   async function saveCfg(next) {
     if (!canWrite() || saving) return false;
@@ -1111,9 +1114,13 @@
     const next = baseCfg();
     if (b.dataset.act === 'goto') return openSource(b.dataset.src);
     if (b.dataset.act === 'set-key') { closeSheet(); return askKey(); }
-    if (b.dataset.act === 'link') { linkBox = (next.mailboxes[i] || {}).address; return openSource('link'); }
+    if (b.dataset.act === 'google') { const m = next.mailboxes[i] || {}; return connectGoogle(m.address, m.label); }
     if (b.dataset.act === 'studio-clear') { store.set(STUDIO, '{}'); toast('Studio débranché.'); renderPanel(); return load(); }
-    if (b.dataset.act === 'remove') next.mailboxes.splice(i, 1);
+    if (b.dataset.act === 'remove') {
+      const m = next.mailboxes[i] || {};
+      if (m.mode === 'google') { try { await rpc('bento_remove_account', { p_key: accessKey, p_email: m.address }); } catch {} googleAccounts = googleAccounts.filter((a) => a.email !== String(m.address).toLowerCase()); }
+      next.mailboxes.splice(i, 1);
+    }
     else if (b.dataset.act === 'vip-remove') next.vipSenders.splice(i, 1);
     else return;
     await saveCfg(next);
@@ -1149,7 +1156,7 @@
       const label = f.elements.label.value.trim();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address)) { panelMsg = 'Adresse mail invalide.'; return renderPanel(); }
       if (next.mailboxes.some((b) => b.address === address)) { panelMsg = 'Cette boîte est déjà suivie.'; return renderPanel(); }
-      next.mailboxes.push({ address, label, mode: 'forwarded', active: true });
+      next.mailboxes.push({ address, label, mode: 'google', active: true });
     } else {
       let v = f.elements.vip.value.trim().toLowerCase();
       if (/^[a-z0-9.-]+\.[a-z]{2,}$/.test(v)) v = '@' + v;
@@ -1158,7 +1165,7 @@
       next.vipSenders.push(v);
     }
     if (await saveCfg(next)) {
-      if (f.dataset.form === 'mailbox') { linkBox = next.mailboxes[next.mailboxes.length - 1].address; return openSource('link'); }
+      if (f.dataset.form === 'mailbox') { const m = next.mailboxes[next.mailboxes.length - 1]; return connectGoogle(m.address, m.label); }
       f.reset();
       const live = $('sheetBody').querySelector(`form[data-form="${f.dataset.form}"]`);
       if (live) live.reset();
@@ -1325,14 +1332,15 @@
       const out = res.value || {};
       cfg = out.config || null;
       cfgReady = true;
+      googleAccounts = Array.isArray(out.accounts) ? out.accounts : [];
       const projects = studio.status === 'fulfilled' ? studio.value : null;
       if (projects) pushStudio(projects);
       const sErr = studio.status === 'rejected' ? (studio.reason.code || 'erreur') : null;
       if (out.brief) {
         lastRaw = out.brief;
         const d = merge(out.brief, projects, sErr);
-        const pending = ((cfg && cfg.mailboxes) || []).filter((b) => b.mode !== 'connected' && b.active !== false && (d.mailboxStatus || {})[b.address] === 'pending');
-        if (pending.length) d.errors.push(`${pending.length > 1 ? `${pending.length} boîtes mail pas encore reliées` : `${pending[0].address} pas encore reliée`} (pastille Gmail)`);
+        const pending = ((cfg && cfg.mailboxes) || []).filter((b) => b.mode === 'google' && b.active !== false && !googleAccounts.some((a) => a.email === String(b.address).toLowerCase() && a.status === 'ok'));
+        if (pending.length) d.errors.push(`${pending.length > 1 ? `${pending.length} boîtes mail à connecter` : `${pending[0].address} à connecter`} (pastille Gmail)`);
         store.set(CACHE, JSON.stringify(d));
         render(d);
         note(d.errors.join(' · '));

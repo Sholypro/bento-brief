@@ -33,22 +33,15 @@ Identifiant d'Alex : `SLACK_USER_ID`. Fenêtre : 36 dernières heures.
 
 Une entrée par conversation (son dernier message qui concerne Alex). `awaitingReply` = Alex n'a pas répondu après ce message ET le message appelle une réponse ou une action. 5 conversations, celles qui attendent sa réponse d'abord. `unread` toujours `false`. `link` OBLIGATOIRE : le Permalink exact.
 
-## 2. Gmail
+## 2. Mails (toutes les boîtes)
 
-Claude lit une seule boîte : celle du connecteur Gmail (`mode: "connected"` dans `config.mailboxes`). Chaque autre boîte (`mode: "forwarded"`) doit transférer ses mails vers elle.
-
-1. Boîte connectée : `search_threads` avec `in:inbox is:unread newer_than:2d -category:promotions -category:social -category:forums`, view `THREAD_VIEW_SUMMARY`, pageSize 40.
-2. Pour chaque boîte transférée active (`active` différent de `false`) :
-   - statut : `search_threads` avec `deliveredto:ADRESSE newer_than:30d`, view `THREAD_VIEW_IDS_ONLY`, pageSize 1. Au moins un résultat : `mailboxStatus[ADRESSE] = "ok"`, sinon `"pending"`.
-   - si `ok` : `search_threads` avec `deliveredto:ADRESSE is:unread newer_than:2d`, view `THREAD_VIEW_SUMMARY`, pageSize 30 (garde ces fils même hors de l'onglet Principal).
-3. `account` d'un mail : l'étiquette (`label`) de la boîte transférée qui l'a reçu, en minuscules (`deliveredto` ou destinataire), sinon l'étiquette de la boîte connectée.
-4. Une boîte `pending` n'est jamais une erreur : n'invente aucun mail pour elle.
-
-(Tri, `tag`, `why`, `link` et cas d'erreur inchangés.)
+- Boîte du connecteur Gmail de Claude (`ADRESSE_PERSO`) : `search_threads` sur les non lus des 2 derniers jours (hors promotions et réseaux sociaux).
+- Autres boîtes (`mode: "google"`) : reliées directement à l'app avec « Connecter avec Google » (lecture seule). La fonction Supabase `bento-google` relit leurs non lus toutes les 20 minutes dans la table `bento_inbox`. La tâche les lit en SQL, sans transfert de mails.
+- 6 mails importants au maximum, toutes boîtes confondues, `account` = étiquette de la boîte, `link` exact.
 
 ## 3. Studio KLIMB
 
-L'app lit elle-même l'API du Studio : `sources.studio` = `off`, `projects` = [].
+L'app lit l'API des tâches KLIMB Studio (en-tête `x-api-key`) et en dépose un résumé dans `bento_studio`. La tâche s'en sert pour L'essentiel : tâches urgentes, bloquées, en retard, à rendre aujourd'hui ou demain, ou au statut `aujourdhui`.
 
 ## 4. L'essentiel
 
@@ -78,7 +71,6 @@ Format du JSON :
   "slack": [{ "where": "DM | Groupe | #canal", "who": "Nom", "text": "…", "time": "ISO", "awaitingReply": true, "unread": false, "count": 1, "link": "Permalink" }],
   "projects": [],
   "sources": { "gmail": "ok | reconnect", "slack": "ok | error", "studio": "off", "ai": "ok" },
-  "mailboxStatus": { "ADRESSE_KLIMB": "ok | pending" },
   "errors": []
 }
 ```
