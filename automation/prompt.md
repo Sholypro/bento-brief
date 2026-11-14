@@ -56,10 +56,10 @@ L'app lit elle-même l'API du Studio : `sources.studio` = `off`, `projects` = []
 ## 5. Écriture dans Supabase
 
 ```sql
-insert into public.bento_briefs (brief) values ($bento${ …le JSON… }$bento$::jsonb);
-delete from public.bento_briefs where created_at < now() - interval '7 days';
-delete from public.bento_feedback where created_at < now() - interval '120 days';
+select public.bento_push($bento${ …le JSON… }$bento$::jsonb);
 ```
+
+La fonction insère le brief et fait le ménage (briefs de plus de 7 jours, retours de plus de 120 jours).
 
 Format du JSON :
 

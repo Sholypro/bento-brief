@@ -129,3 +129,24 @@ revoke execute on function public.bento_feedback(text, text, jsonb, text) from a
 -- with k as (select 'bento_' || encode(extensions.gen_random_bytes(20), 'hex') as key),
 -- ins as (insert into public.bento_keys (label, key_hash) select 'Mon appareil', encode(extensions.digest(key, 'sha256'), 'hex') from k returning id)
 -- select k.key from k, ins;
+
+-- Écriture du brief par la tâche planifiée (insertion + nettoyage, réservé au connecteur Supabase)
+create or replace function public.bento_push(p_brief jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  new_id bigint;
+begin
+  if jsonb_typeof(p_brief) <> 'object' or not (p_brief ? 'essentials') then
+    raise exception 'brief invalide' using errcode = '22023';
+  end if;
+  insert into public.bento_briefs (brief) values (p_brief) returning id into new_id;
+  delete from public.bento_briefs where created_at < now() - interval '7 days';
+  delete from public.bento_feedback where created_at < now() - interval '120 days';
+  return jsonb_build_object('id', new_id, 'ok', true);
+end;
+$$;
+revoke all on function public.bento_push(jsonb) from public, anon, authenticated;
