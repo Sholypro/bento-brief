@@ -1003,7 +1003,7 @@
       <p class="panel-sub">${sc.url ? 'Lu directement par l’app à chaque ouverture' : 'Pas encore branché'}</p>
       <section aria-labelledby="h-studio">
         <h3 id="h-studio">API du Studio</h3>
-        <p>Colle l’adresse et la clé de l’API du Studio. La clé reste sur cet appareil et part uniquement dans l’en-tête de la requête.</p>
+        <p>Colle l’adresse et la clé de l’API du Studio. Une seule fois suffit : tes autres appareils la récupèrent tout seuls. La clé part uniquement dans l’en-tête de la requête.</p>
         <form class="add" data-form="studio">
           <input type="url" name="url" required placeholder="${STUDIO_DEFAULT_URL}" value="${esc(sc.url || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Adresse de l’API Studio" ${dis}>
           <input type="text" name="key" required placeholder="studio_…" value="${esc(sc.key || '')}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Clé de l’API Studio" ${dis}>
@@ -1103,7 +1103,7 @@
       return false;
     } finally { saving = false; }
   }
-  const baseCfg = () => ({ mailboxes: [...((cfg && cfg.mailboxes) || [])], vipSenders: [...((cfg && cfg.vipSenders) || [])] });
+  const baseCfg = () => ({ mailboxes: [...((cfg && cfg.mailboxes) || [])], vipSenders: [...((cfg && cfg.vipSenders) || [])], ...(cfg && cfg.studio && cfg.studio.url ? { studio: { ...cfg.studio } } : {}) });
 
   $('status').addEventListener('click', (e) => { const b = e.target.closest('.src'); if (b) openSource(b.dataset.src); });
   $('sheetBody').addEventListener('click', async (e) => {
@@ -1114,7 +1114,7 @@
     if (b.dataset.act === 'goto') return openSource(b.dataset.src);
     if (b.dataset.act === 'set-key') { closeSheet(); return askKey(); }
     if (b.dataset.act === 'google') { const m = next.mailboxes[i] || {}; return connectGoogle(m.address, m.label); }
-    if (b.dataset.act === 'studio-clear') { store.set(STUDIO, '{}'); toast('Studio débranché.'); renderPanel(); return load(); }
+    if (b.dataset.act === 'studio-clear') { store.set(STUDIO, '{}'); const n = baseCfg(); delete n.studio; await saveCfg(n); toast('Studio débranché sur tous tes appareils.'); renderPanel(); return load(); }
     if (b.dataset.act === 'remove') {
       const m = next.mailboxes[i] || {};
       if (m.mode === 'google') { try { await rpc('bento_remove_account', { p_key: accessKey, p_email: m.address }); } catch {} googleAccounts = googleAccounts.filter((a) => a.email !== String(m.address).toLowerCase()); }
@@ -1144,6 +1144,7 @@
       if (member && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(member)) { panelMsg = 'Email KLIMB invalide.'; return renderPanel(); }
       store.set(STUDIO, JSON.stringify({ url, key, member }));
       studioPushedAt = 0;
+      await saveCfg({ ...baseCfg(), studio: { url, key, member } });
       panelMsg = '';
       toast('Studio enregistré.');
       await load();
@@ -1232,7 +1233,25 @@
   }
 
   // Studio KLIMB : l'app lit directement l'API fournie par ton collègue
-  function studioCfg() { try { return JSON.parse(store.get(STUDIO) || '{}') || {}; } catch { return {}; } }
+  function localStudio() { try { return JSON.parse(store.get(STUDIO) || '{}') || {}; } catch { return {}; } }
+  function studioCfg() {
+    const loc = localStudio();
+    if (loc.url) return loc;
+    return (cfg && cfg.studio && cfg.studio.url) ? cfg.studio : {};
+  }
+  // Ce que cet appareil connaît part dans la base, pour que l'iPad, l'iPhone et le Mac aient tous le Studio
+  let studioSyncing = false;
+  async function syncStudioCfg() {
+    const loc = localStudio();
+    const remote = (cfg && cfg.studio) || {};
+    if (studioSyncing || !canWrite()) return;
+    if (loc.url && (loc.url !== remote.url || loc.key !== remote.key || (loc.member || '') !== (remote.member || ''))) {
+      studioSyncing = true;
+      try { await saveCfg({ ...baseCfg(), studio: { url: loc.url, key: loc.key || '', member: loc.member || '' } }); } finally { studioSyncing = false; }
+    } else if (!loc.url && remote.url) {
+      store.set(STUDIO, JSON.stringify(remote));
+    }
+  }
   const STUDIO_DEFAULT_URL = 'https://studio.goklimb.com/api/public/studio-tasks';
   function studioMember() {
     const sc = studioCfg();
@@ -1333,9 +1352,13 @@
       cfg = out.config || null;
       cfgReady = true;
       googleAccounts = Array.isArray(out.accounts) ? out.accounts : [];
-      const projects = studio.status === 'fulfilled' ? studio.value : null;
+      let projects = studio.status === 'fulfilled' ? studio.value : null;
+      let sErr = studio.status === 'rejected' ? (studio.reason.code || 'erreur') : null;
+      syncStudioCfg();
+      if (!projects && !sErr && studioCfg().url) {
+        try { projects = await loadStudio(); } catch (e2) { sErr = e2.code || 'erreur'; }
+      }
       if (projects) pushStudio(projects);
-      const sErr = studio.status === 'rejected' ? (studio.reason.code || 'erreur') : null;
       if (out.brief) {
         lastRaw = out.brief;
         const d = merge(out.brief, projects, sErr);
