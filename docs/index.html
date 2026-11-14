@@ -308,6 +308,47 @@
   .toast { position: fixed; z-index: 45; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translate(-50%, 20px); opacity: 0; pointer-events: none; max-width: calc(100% - 32px); padding: 12px 18px; border-radius: 999px; background: var(--forest); color: var(--accent); font-size: 15px; font-weight: 600; transition: opacity .2s, transform .2s; }
   .toast.on { opacity: 1; transform: translate(-50%, 0); }
 
+  /* Météo : la date ouvre la fenêtre météo */
+  .wx-btn { border: 0; cursor: pointer; color: var(--ink); font-family: var(--sans); }
+  .wx-btn:hover { background: rgba(252, 250, 238, 0.9); }
+  #todayIcon { display: inline-flex; }
+  .wx-mini { display: inline-flex; align-items: center; gap: 8px; }
+  .wx-mini::before { content: ''; width: 1px; height: 16px; background: rgba(20,32,26,0.2); }
+  .wx-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  @media (min-width: 760px) { .wx-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .wx-city { border-radius: 28px; padding: 22px 20px; display: flex; flex-direction: column; gap: 18px; background: rgba(255,255,255,0.6); min-width: 0; }
+  .wx-city.lime { background: linear-gradient(160deg, #E6FB82, #D2F255); }
+  .wx-city header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+  .wx-city h3 { margin: 0; font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 1; letter-spacing: -0.01em; }
+  .wx-city header span { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .wx-now { display: flex; align-items: center; gap: 16px; }
+  .wx-now .ic { flex-shrink: 0; }
+  .wx-temp { font-family: var(--serif); font-size: 84px; line-height: 0.85; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  .wx-now b { display: block; font-size: 18px; margin-bottom: 4px; }
+  .wx-now small { display: block; font-size: 14px; line-height: 1.4; color: var(--ink-2); }
+  .wx-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 0; }
+  @media (max-width: 520px) { .wx-temp { font-size: 72px; } }
+  .wx-facts div { border-radius: 16px; padding: 10px 12px; background: rgba(255,255,255,0.55); min-width: 0; }
+  .wx-facts dt { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+  .wx-facts dd { margin: 3px 0 0; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wx-hours { display: flex; gap: 6px; overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .wx-hours::-webkit-scrollbar { display: none; }
+  .wx-h { flex: 0 0 auto; min-width: 56px; scroll-snap-align: start; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 6px; border-radius: 18px; background: rgba(255,255,255,0.45); font-size: 13px; }
+  .wx-h .t { font-weight: 600; color: var(--ink-2); }
+  .wx-h b { font-size: 16px; font-variant-numeric: tabular-nums; }
+  .wx-h .p { font-size: 11px; font-weight: 700; color: #1F5F8B; min-height: 13px; }
+  .wx-h.now { background: var(--forest); color: var(--accent); }
+  .wx-h.now .t, .wx-h.now .p { color: inherit; }
+  .wx-days { display: flex; flex-direction: column; }
+  .wx-d { display: grid; grid-template-columns: 56px 24px 32px minmax(48px, 1fr) 32px 40px; align-items: center; gap: 8px; padding: 9px 0; border-top: 1px solid rgba(20,32,26,0.1); font-size: 15px; font-variant-numeric: tabular-nums; }
+  .wx-d .dn { font-weight: 700; }
+  .wx-d .lo { color: var(--ink-2); text-align: right; }
+  .wx-d .hi { font-weight: 700; }
+  .wx-d .p { font-size: 12px; font-weight: 700; color: #1F5F8B; text-align: right; }
+  .wx-range { position: relative; height: 6px; border-radius: 3px; background: rgba(20,32,26,0.1); }
+  .wx-range i { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: linear-gradient(90deg, #7DB9E0, #F2B84B); }
+  .wx-src { margin: 0; font-size: 13px; color: var(--ink-2); }
+
   /* Squelette de chargement */
   .skel { border-radius: 30px; min-height: 140px; }
 
@@ -439,10 +480,11 @@
 
 <main class="app" id="app">
   <div class="topbar">
-    <span class="pill glass" id="today">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+    <button type="button" class="pill glass wx-btn" id="today" aria-haspopup="dialog" aria-label="Météo à Morainvilliers et Boulogne-Billancourt">
+      <span id="todayIcon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>
       <span id="todayText"></span>
-    </span>
+      <span id="todayTemp" class="wx-mini" hidden></span>
+    </button>
     <div class="right">
       <span class="pill glass"><small>Mis à jour</small><span id="updated">--:--</span></span>
       <button class="round glass" id="refresh" aria-label="Recharger le dernier brief">
@@ -779,6 +821,7 @@
   }
   function openSheet(tile) {
     openSrc = null;
+    wxOpen = false;
     const clone = tile.cloneNode(true);
     clone.removeAttribute('style');
     clone.classList.remove('clipped');
@@ -789,6 +832,7 @@
   }
   function closeSheet() {
     openSrc = null;
+    wxOpen = false;
     $('sheet').hidden = true;
     document.body.classList.remove('sheet-open');
     $('sheetBody').replaceChildren();
@@ -965,7 +1009,7 @@
     if (drafts) [...sec.querySelectorAll('form input')].forEach((i, n) => { if (drafts[n]) i.value = drafts[n]; });
     showSheet(sec);
   }
-  function openSource(k) { openSrc = k; panelMsg = ''; renderPanel(); }
+  function openSource(k) { wxOpen = false; openSrc = k; panelMsg = ''; renderPanel(); }
 
   async function saveCfg(next) {
     if (!canWrite() || saving) return false;
@@ -1256,6 +1300,140 @@
   document.addEventListener('click', (e) => { if (lpFired) { lpFired = false; e.preventDefault(); e.stopPropagation(); } }, true);
   document.addEventListener('contextmenu', (e) => { const el = e.target.closest('[data-fb]'); if (el) { e.preventDefault(); cancelLp(); if (!lpFired) openFeedback(el); lpFired = false; } });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('fb').hidden) closeFeedback(); });
+
+  // ============ Météo : Morainvilliers et Boulogne-Billancourt (Open-Meteo, sans clé) ============
+  const WX_PLACES = [
+    { name: 'Morainvilliers', sub: 'Yvelines', lat: 48.9294, lon: 1.9378, cls: 'lime' },
+    { name: 'Boulogne', sub: 'Boulogne-Billancourt', lat: 48.8356, lon: 2.2410, cls: '' }
+  ];
+  const WX_KEY = 'bento.wx';
+  const WX_URL = 'https://api.open-meteo.com/v1/forecast'
+    + `?latitude=${WX_PLACES.map((p) => p.lat).join(',')}&longitude=${WX_PLACES.map((p) => p.lon).join(',')}`
+    + '&current=temperature_2m,apparent_temperature,weather_code,is_day,wind_speed_10m,relative_humidity_2m'
+    + '&hourly=temperature_2m,weather_code,precipitation_probability,is_day'
+    + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset'
+    + '&timezone=Europe%2FParis&forecast_days=5';
+  const WX_ICONS = {
+    sun: '<circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
+    moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/>',
+    partlyNight: '<path d="M10 3a4.2 4.2 0 1 0 2.8 6.6A3.4 3.4 0 0 1 10 3Z"/><path d="M8.5 20h8.5a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.4 1.5A3.3 3.3 0 0 0 8.5 20Z"/>',
+    partly: '<path d="M8 3v1.5M3 8h1.5M4.5 4.5l1 1M11.5 4.5l-1 1"/><path d="M5.2 10.8a3.5 3.5 0 0 1 6-3.7"/><path d="M8.5 20h8.5a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.4 1.5A3.3 3.3 0 0 0 8.5 20Z"/>',
+    cloud: '<path d="M7 19h10a4.5 4.5 0 0 0 .6-9 6 6 0 0 0-11.4 1.6A3.8 3.8 0 0 0 7 19Z"/>',
+    fog: '<path d="M7 13h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.4 1.4A3.3 3.3 0 0 0 7 13Z"/><path d="M4 17h16M7 21h10"/>',
+    rain: '<path d="M7 15h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.4 1.4A3.3 3.3 0 0 0 7 15Z"/><path d="M8.5 18l-1 3M12.5 18l-1 3M16.5 18l-1 3"/>',
+    snow: '<path d="M7 15h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.4 1.4A3.3 3.3 0 0 0 7 15Z"/><path d="M8 18.5h.01M12 18.5h.01M16 18.5h.01M10 21.5h.01M14 21.5h.01"/>',
+    storm: '<path d="M7 15h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.4 1.4A3.3 3.3 0 0 0 7 15Z"/><path d="m12.5 15-2 3.5h3L11.5 22"/>'
+  };
+  const wxIcon = (k, size = 24) => `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${WX_ICONS[k] || WX_ICONS.cloud}</svg>`;
+  function wxKind(code, day = 1) {
+    if (code <= 1) return day ? 'sun' : 'moon';
+    if (code === 2) return day ? 'partly' : 'partlyNight';
+    if (code === 3) return 'cloud';
+    if (code === 45 || code === 48) return 'fog';
+    if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
+    if (code >= 95) return 'storm';
+    return 'rain';
+  }
+  const WX_LABEL = { 0: 'Ciel dégagé', 1: 'Plutôt dégagé', 2: 'Partiellement nuageux', 3: 'Couvert', 45: 'Brouillard', 48: 'Brouillard givrant', 51: 'Bruine légère', 53: 'Bruine', 55: 'Forte bruine', 56: 'Bruine verglaçante', 57: 'Bruine verglaçante', 61: 'Pluie faible', 63: 'Pluie', 65: 'Forte pluie', 66: 'Pluie verglaçante', 67: 'Pluie verglaçante', 71: 'Neige faible', 73: 'Neige', 75: 'Forte neige', 77: 'Grains de neige', 80: 'Averses faibles', 81: 'Averses', 82: 'Fortes averses', 85: 'Averses de neige', 86: 'Fortes averses de neige', 95: 'Orage', 96: 'Orage et grêle', 99: 'Orage et grêle' };
+  const deg = (v) => `${Math.round(v)}°`;
+  const hm = (iso) => String(iso || '').slice(11, 16);
+  function wxCached() { try { return JSON.parse(store.get(WX_KEY) || 'null'); } catch { return null; } }
+  let wxBusy = null;
+  async function loadWeather(force = false) {
+    const c = wxCached();
+    if (!force && c && Date.now() - c.at < 15 * 60 * 1000) return c;
+    if (wxBusy) return wxBusy;
+    wxBusy = (async () => {
+      try {
+        const r = await fetch(WX_URL, { cache: 'no-store' });
+        if (!r.ok) throw new Error(String(r.status));
+        const j = await r.json();
+        const data = { at: Date.now(), places: Array.isArray(j) ? j : [j] };
+        store.set(WX_KEY, JSON.stringify(data));
+        return data;
+      } catch { return c; } finally { wxBusy = null; }
+    })();
+    return wxBusy;
+  }
+  function renderWxPill(data) {
+    const p = data && data.places && data.places[0];
+    if (!p || !p.current) return;
+    $('todayIcon').innerHTML = wxIcon(wxKind(p.current.weather_code, p.current.is_day), 16);
+    $('todayTemp').textContent = deg(p.current.temperature_2m);
+    $('todayTemp').hidden = false;
+  }
+  function wxCity(place, w, range) {
+    const cur = w.current || {};
+    const d = w.daily || {};
+    const h = w.hourly || {};
+    const nowKey = String(cur.time || '').slice(0, 13);
+    let start = (h.time || []).findIndex((t) => t.slice(0, 13) === nowKey);
+    if (start < 0) start = 0;
+    const hours = (h.time || []).slice(start, start + 12).map((t, i) => {
+      const k = start + i;
+      const pr = h.precipitation_probability ? h.precipitation_probability[k] : null;
+      return `<div class="wx-h ${i === 0 ? 'now' : ''}"><span class="t">${i === 0 ? 'Maint.' : `${Number(t.slice(11, 13))}h`}</span>${wxIcon(wxKind(h.weather_code[k], h.is_day ? h.is_day[k] : 1), 22)}<b>${deg(h.temperature_2m[k])}</b><span class="p">${pr >= 20 ? `${pr} %` : ''}</span></div>`;
+    }).join('');
+    const span = Math.max(1, range.max - range.min);
+    const days = (d.time || []).slice(0, 5).map((t, i) => {
+      const lo = d.temperature_2m_min[i];
+      const hi = d.temperature_2m_max[i];
+      const name = i === 0 ? 'Auj.' : i === 1 ? 'Demain' : new Date(`${t}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'short' });
+      const pr = d.precipitation_probability_max ? d.precipitation_probability_max[i] : null;
+      return `<div class="wx-d"><span class="dn">${esc(name)}</span>${wxIcon(wxKind(d.weather_code[i]), 22)}<span class="lo">${deg(lo)}</span><span class="wx-range" aria-hidden="true"><i style="left:${((lo - range.min) / span) * 100}%;right:${100 - ((hi - range.min) / span) * 100}%"></i></span><span class="hi">${deg(hi)}</span><span class="p">${pr >= 20 ? `${pr} %` : ''}</span></div>`;
+    }).join('');
+    const today = 0;
+    return `
+      <article class="wx-city ${place.cls}" aria-label="Météo à ${esc(place.sub)}">
+        <header><h3>${esc(place.name)}</h3><span>${esc(place.sub)}</span></header>
+        <div class="wx-now">
+          ${wxIcon(wxKind(cur.weather_code, cur.is_day), 64)}
+          <span class="wx-temp">${deg(cur.temperature_2m)}</span>
+          <div><b>${esc(WX_LABEL[cur.weather_code] || 'Variable')}</b><small>Ressenti ${deg(cur.apparent_temperature)}<br>Max ${deg(d.temperature_2m_max[today])} · Min ${deg(d.temperature_2m_min[today])}</small></div>
+        </div>
+        <dl class="wx-facts">
+          <div><dt>Pluie</dt><dd>${d.precipitation_probability_max ? d.precipitation_probability_max[today] : 0} %</dd></div>
+          <div><dt>Vent</dt><dd>${Math.round(cur.wind_speed_10m)} km/h</dd></div>
+          <div><dt>Humidité</dt><dd>${Math.round(cur.relative_humidity_2m)} %</dd></div>
+          <div><dt>Soleil</dt><dd>${hm(d.sunrise[today])} · ${hm(d.sunset[today])}</dd></div>
+        </dl>
+        <div class="wx-hours" aria-label="Prochaines heures">${hours}</div>
+        <div class="wx-days" aria-label="Prochains jours">${days}</div>
+      </article>`;
+  }
+  let wxOpen = false;
+  function renderWxSheet(data) {
+    const sec = document.createElement('section');
+    sec.className = 'tile glass panel';
+    sec.setAttribute('aria-labelledby', 't-panel');
+    const places = (data && data.places) || [];
+    if (!places.length || !places[0].current) {
+      sec.innerHTML = `<div class="tile-head"><h2 id="t-panel">Météo</h2></div><p class="panel-sub">${data === undefined ? 'Chargement…' : 'Météo indisponible pour le moment. Vérifie ta connexion.'}</p>`;
+      return showSheet(sec);
+    }
+    const all = places.flatMap((w) => [...(w.daily.temperature_2m_min || []).slice(0, 5), ...(w.daily.temperature_2m_max || []).slice(0, 5)]);
+    const range = { min: Math.min(...all), max: Math.max(...all) };
+    sec.innerHTML = `
+      <div class="tile-head"><h2 id="t-panel">Météo</h2></div>
+      <p class="panel-sub">Mise à jour à ${esc(new Date(data.at).toLocaleTimeString('fr-FR', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }))}</p>
+      <div class="wx-grid">${places.map((w, i) => wxCity(WX_PLACES[i], w, range)).join('')}</div>
+      <p class="wx-src">Prévisions Open-Meteo. Glisse les heures pour voir la suite.</p>`;
+    showSheet(sec);
+  }
+  $('today').addEventListener('click', async () => {
+    openSrc = null;
+    wxOpen = true;
+    const c = wxCached();
+    renderWxSheet(c || undefined);
+    const fresh = await loadWeather(!c || Date.now() - c.at > 10 * 60 * 1000);
+    renderWxPill(fresh);
+    if (wxOpen && !$('sheet').hidden && fresh && fresh !== c) renderWxSheet(fresh);
+    else if (wxOpen && !$('sheet').hidden && !c) renderWxSheet(fresh || null);
+  });
+  $('sheetClose').addEventListener('click', () => { wxOpen = false; });
+  renderWxPill(wxCached());
+  loadWeather().then(renderWxPill);
+  setInterval(() => { if (document.visibilityState === 'visible') loadWeather().then(renderWxPill); }, 15 * 60 * 1000);
 
   // ============ Démarrage ============
   $('refresh').addEventListener('click', () => (live() ? load() : askKey()));
