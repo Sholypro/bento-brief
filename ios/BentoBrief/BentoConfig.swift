@@ -8,6 +8,16 @@ enum BentoConfig {
     /// La webapp Bento : chaque mise à jour poussée sur GitHub arrive dans l'app sans repasser par Xcode
     static let briefURL = URL(string: "https://sholypro.github.io/bento-brief/")!
 
+    /// Toujours la dernière version publiée sur GitHub (pas de copie gardée en cache)
+    static func freshRequest() -> URLRequest {
+        URLRequest(url: briefURL, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 15)
+    }
+
+    /// Hors ligne : la dernière version téléchargée
+    static func cachedRequest() -> URLRequest {
+        URLRequest(url: briefURL, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 15)
+    }
+
     /// Sites qui restent dans l'app. Tout le reste (Slack, Gmail, Studio…) s'ouvre dans son app ou dans Safari.
     static let inAppDomains = ["sholypro.github.io"]
 

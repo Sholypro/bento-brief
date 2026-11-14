@@ -36,8 +36,8 @@ struct ContentView: View {
             case .background:
                 backgroundSince = Date()
             case .active:
-                // Revenu après plus de 10 min : recharge pour afficher le dernier brief
-                if let since = backgroundSince, Date().timeIntervalSince(since) > 600 { browser.reload() }
+                // Revenu après plus de 2 min : recharge pour avoir la dernière version et le dernier brief
+                if let since = backgroundSince, Date().timeIntervalSince(since) > 120 { browser.reload() }
                 backgroundSince = nil
             default:
                 break

@@ -14,7 +14,8 @@ final class BrowserState: ObservableObject {
     func reload() {
         failed = nil
         guard let webView else { return }
-        if webView.url == nil { webView.load(URLRequest(url: BentoConfig.briefURL)) } else { webView.reload() }
+        // Recharge toujours depuis GitHub pour avoir la dernière version de l'app
+        webView.load(BentoConfig.freshRequest())
     }
 
     func open(_ url: URL) {
@@ -60,7 +61,7 @@ struct BentoWebView: UIViewRepresentable {
         }
 
         state.webView = webView
-        webView.load(URLRequest(url: BentoConfig.briefURL))
+        webView.load(BentoConfig.freshRequest())
         return webView
     }
 
@@ -70,6 +71,7 @@ struct BentoWebView: UIViewRepresentable {
         let state: BrowserState
         var urlObservation: NSKeyValueObservation?
         private var popup: PopupController?
+        private var triedCache = false
 
         init(state: BrowserState) { self.state = state }
 
@@ -110,6 +112,7 @@ struct BentoWebView: UIViewRepresentable {
             state.isLoading = false
             state.hasLoadedOnce = true
             state.failed = nil
+            triedCache = false
             webView.scrollView.refreshControl?.endRefreshing()
             updateLocation(of: webView)
         }
@@ -132,6 +135,13 @@ struct BentoWebView: UIViewRepresentable {
             let ns = error as NSError
             if ns.domain == NSURLErrorDomain && ns.code == NSURLErrorCancelled { return }
             if ns.domain == "WebKitErrorDomain" && ns.code == 102 { return } // lien ouvert dans une autre app
+            // Hors ligne : affiche la dernière version téléchargée plutôt qu'une erreur
+            let offline = [NSURLErrorNotConnectedToInternet, NSURLErrorNetworkConnectionLost, NSURLErrorTimedOut, NSURLErrorCannotFindHost, NSURLErrorCannotConnectToHost]
+            if ns.domain == NSURLErrorDomain && offline.contains(ns.code) && !triedCache {
+                triedCache = true
+                webView.load(BentoConfig.cachedRequest())
+                return
+            }
             state.failed = ns.localizedDescription
         }
 

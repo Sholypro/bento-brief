@@ -1435,6 +1435,26 @@
   loadWeather().then(renderWxPill);
   setInterval(() => { if (document.visibilityState === 'visible') loadWeather().then(renderWxPill); }, 15 * 60 * 1000);
 
+  // ============ Mise à jour automatique : recharge quand une nouvelle version est publiée ============
+  const BUILD = '20261114182402';
+  async function checkUpdate() {
+    if (BUILD.startsWith('__') || !/^https:/.test(location.protocol)) return;
+    if (!$('sheet').hidden || !$('onboard').hidden || !$('fb').hidden) return; // ne coupe rien en cours
+    try {
+      const r = await fetch(`version.json?t=${Date.now()}`, { cache: 'no-store' });
+      if (!r.ok) return;
+      const { build } = await r.json();
+      if (!build || build === BUILD || store.get('bento.reloadedFor') === build) return;
+      store.set('bento.reloadedFor', build);
+      const q = new URLSearchParams(location.search);
+      q.set('v', build);
+      location.replace(`${location.pathname}?${q.toString()}`);
+    } catch {}
+  }
+  setTimeout(checkUpdate, 3000);
+  setInterval(() => { if (document.visibilityState === 'visible') checkUpdate(); }, 10 * 60 * 1000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
+
   // ============ Démarrage ============
   $('refresh').addEventListener('click', () => (live() ? load() : askKey()));
   setHeader(null);
