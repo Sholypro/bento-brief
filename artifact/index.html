@@ -756,8 +756,7 @@
     const sum = sc ? [
       sc.aujourdhui ? `<b>${sc.aujourdhui}</b> aujourd’hui` : '',
       sc.en_cours ? `<b>${sc.en_cours}</b> en cours` : '',
-      sc.a_faire ? `<b>${sc.a_faire}</b> à faire` : '',
-      (sc.revue_klimb || 0) + (sc.revue_client || 0) ? `<b>${(sc.revue_klimb || 0) + (sc.revue_client || 0)}</b> en revue` : ''
+      sc.a_faire ? `<b>${sc.a_faire}</b> à faire` : ''
     ].filter(Boolean).join(' · ') : '';
     return `
       <section class="tile glass studio ${W(L)}" data-key="studio" ${L} aria-labelledby="t-studio">
@@ -1011,7 +1010,7 @@
           <input type="email" name="member" placeholder="Ton email @goklimb.com" value="${esc(sc.member || studioMember())}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Ton email KLIMB" ${dis}>
           <button type="submit" class="btn" ${dis}>Enregistrer</button>
         </form>
-        <p class="hint">Tes tâches actives (hors idées) sont relues toutes les 3 minutes. Les urgentes, bloquées ou à rendre sous 2 jours passent en haut, et Claude en tient compte dans « L’essentiel ».</p>
+        <p class="hint">Seules tes tâches Aujourd’hui, En cours et À faire s’affichent, relues toutes les 3 minutes. Les urgentes, bloquées ou à rendre sous 2 jours passent en haut, et Claude en tient compte dans « L’essentiel ».</p>
       </section>
       ${lockNote()}
       <p class="panel-note" role="status">${esc(panelMsg)}</p>
@@ -1243,6 +1242,7 @@
     return k ? k.address : '';
   }
   const ST_ORDER = { aujourdhui: 0, en_cours: 1, a_faire: 2, revue_klimb: 3, revue_client: 4, idees: 5 };
+  const STUDIO_SHOWN = ['aujourdhui', 'en_cours', 'a_faire'];
   let studioCounts = null;
   async function loadStudio() {
     const sc = studioCfg();
@@ -1268,7 +1268,7 @@
       const today = new Date().toLocaleDateString('fr-CA', { timeZone: TZ });
       const soon = new Date(Date.now() + 2 * 864e5).toLocaleDateString('fr-CA', { timeZone: TZ });
       return tasks
-        .filter((t) => t.statut !== 'idees')
+        .filter((t) => STUDIO_SHOWN.includes(t.statut)) // seulement Aujourd’hui, En cours, À faire
         .map((t) => ({
           id: t.id,
           client: t.client || 'Interne',
