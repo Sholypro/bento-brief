@@ -35,15 +35,16 @@ Une entrée par conversation (son dernier message qui concerne Alex). `awaitingR
 
 ## 2. Gmail
 
-Deux boîtes : `ADRESSE_PERSO` (compte connecté) et `ADRESSE_KLIMB` (transférée vers la boîte perso).
+Claude lit une seule boîte : celle du connecteur Gmail (`mode: "connected"` dans `config.mailboxes`). Chaque autre boîte (`mode: "forwarded"`) doit transférer ses mails vers elle.
 
-1. `search_threads` : `in:inbox is:unread newer_than:2d -category:promotions -category:social -category:forums`, view `THREAD_VIEW_SUMMARY`, pageSize 40.
-1b. `search_threads` : `deliveredto:ADRESSE_KLIMB is:unread newer_than:2d`, view `THREAD_VIEW_IDS_ONLY`, pageSize 50.
-2. `get_thread` seulement si l'importance n'est pas claire, 8 au maximum.
-3. Important : un humain attend une action, échéance, validation, devis, facture, BAT, ou expéditeur `vipSenders`. Jamais : newsletters, notifications, pubs. Appliquer les retours.
-4. 5 mails au maximum, `tag` parmi `urgent`, `client`, `valider`, `info`, `why` en 2 à 4 mots, `link` OBLIGATOIRE (viewUrl du dernier message reçu).
-5. `account` : `klimb` (résultats de 1b ou destinataire `ADRESSE_KLIMB`) sinon `perso`.
-6. Erreur de connexion : `sources.gmail` = `reconnect`, `mails` = [].
+1. Boîte connectée : `search_threads` avec `in:inbox is:unread newer_than:2d -category:promotions -category:social -category:forums`, view `THREAD_VIEW_SUMMARY`, pageSize 40.
+2. Pour chaque boîte transférée active (`active` différent de `false`) :
+   - statut : `search_threads` avec `deliveredto:ADRESSE newer_than:30d`, view `THREAD_VIEW_IDS_ONLY`, pageSize 1. Au moins un résultat : `mailboxStatus[ADRESSE] = "ok"`, sinon `"pending"`.
+   - si `ok` : `search_threads` avec `deliveredto:ADRESSE is:unread newer_than:2d`, view `THREAD_VIEW_SUMMARY`, pageSize 30 (garde ces fils même hors de l'onglet Principal).
+3. `account` d'un mail : l'étiquette (`label`) de la boîte transférée qui l'a reçu, en minuscules (`deliveredto` ou destinataire), sinon l'étiquette de la boîte connectée.
+4. Une boîte `pending` n'est jamais une erreur : n'invente aucun mail pour elle.
+
+(Tri, `tag`, `why`, `link` et cas d'erreur inchangés.)
 
 ## 3. Studio KLIMB
 
@@ -77,6 +78,7 @@ Format du JSON :
   "slack": [{ "where": "DM | Groupe | #canal", "who": "Nom", "text": "…", "time": "ISO", "awaitingReply": true, "unread": false, "count": 1, "link": "Permalink" }],
   "projects": [],
   "sources": { "gmail": "ok | reconnect", "slack": "ok | error", "studio": "off", "ai": "ok" },
+  "mailboxStatus": { "ADRESSE_KLIMB": "ok | pending" },
   "errors": []
 }
 ```
